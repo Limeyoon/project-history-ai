@@ -158,6 +158,13 @@ export default function Home() {
                     </span>
                   </div>
                   <h2 className="entry-title">{entry.title}</h2>
+                  {entry.image_url && (
+                    <img
+                      src={entry.image_url}
+                      alt={entry.title}
+                      className="entry-image"
+                    />
+                  )}
                   <p className="entry-content">{entry.content}</p>
                   {entry.tags && entry.tags.length > 0 && (
                     <div className="tag-row">

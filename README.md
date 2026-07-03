@@ -29,6 +29,9 @@
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` 키 → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` 키 → `SUPABASE_SERVICE_ROLE_KEY` (⚠️ 절대 외부에 공개하면 안 됩니다)
+5. **참고 이미지 업로드 기능을 쓰려면** 왼쪽 메뉴 **Storage** 클릭 → **New bucket** →
+   이름을 정확히 `history-images` 로 입력 → **Public bucket** 옵션 켜기 → **Create bucket**
+   (SQL이 아니라 이 화면에서 직접 만들어야 합니다)
 
 ## 2. 로컬에서 실행해보기 (선택)
 
@@ -76,9 +79,12 @@ git push -u origin main
 
 ## 사용 방법
 
-- **기록 등록**: `/admin` 접속 → 비밀번호 입력 → 날짜/제목/내용/태그 입력 후 등록
-- **검색**: 메인 페이지(`/`)에서 검색창에 키워드 입력 시 제목·내용·태그를 기준으로 즉시 필터링됩니다.
-- **연도별 보기**: 왼쪽 사이드바에서 연도를 클릭하면 해당 연도 기록만 표시됩니다.
+- **기록 등록**: `/admin` 접속 → 비밀번호 입력 → 날짜/카테고리/제목/내용/태그/이미지 입력 후 등록
+- **기록 수정**: `/admin` 하단 목록에서 항목 옆 **수정** 클릭 → 폼에 값이 채워짐 → 수정 후 **수정 저장**
+- **참고 이미지**: jpg/png, 5MB 이하. 업로드하면 Supabase Storage(`history-images` 버킷)에 저장되고,
+  기록 카드에 썸네일로 표시됩니다. "이미지 제거" 버튼으로 삭제할 수 있습니다.
+- **검색**: 메인 페이지(`/`)에서 카테고리 카드를 클릭하거나 검색창에 키워드를 입력하면
+  제목·내용·카테고리·태그를 기준으로 필터링됩니다.
 
 ---
 
@@ -100,13 +106,15 @@ git push -u origin main
 
 ```
 pages/
-  index.js         # 공개 아카이브 + 검색 화면
-  admin.js          # 기록 등록/삭제 화면 (비밀번호 보호)
-  api/records.js    # 기록 조회(GET, 공개) / 등록(POST) / 삭제(DELETE, 관리자 전용)
+  index.js              # 공개 아카이브 + 카테고리 카드 + 검색 화면
+  admin.js               # 기록 등록/수정/삭제 화면 (비밀번호 보호)
+  api/records.js         # 기록 조회(GET, 공개) / 등록(POST) / 수정(PUT) / 삭제(DELETE, 관리자 전용)
+  api/upload-image.js    # 참고 이미지 업로드 (관리자 전용, Supabase Storage 사용)
 lib/
+  categories.js      # 카테고리 정의 (라벨/설명/아이콘/색상)
   supabaseClient.js  # 브라우저용 (anon key)
   supabaseAdmin.js   # 서버 전용 (service_role key, API 라우트에서만 사용)
 supabase/
-  schema.sql         # 테이블 생성 스크립트
-styles/globals.css   # 전체 디자인
+  schema.sql          # 테이블 생성 스크립트 + Storage 버킷 설정 안내
+styles/globals.css    # 전체 디자인
 ```
