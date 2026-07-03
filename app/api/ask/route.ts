@@ -4,30 +4,25 @@ import { supabaseAdmin } from '../../../lib/supabase';
 export async function POST(req: Request) {
   try {
     const { question } = await req.json();
+    const q = String(question || '').trim();
 
-    if (!question) {
-      return NextResponse.json({
-        answer: '검색어를 입력해 주세요.',
-        sources: []
-      });
+    if (!q) {
+      return NextResponse.json({ answer: '검색어를 입력해 주세요.', sources: [] });
     }
 
-    const q = String(question).trim();
+    const safe = q.replace(/[%_]/g, '');
 
     const { data, error } = await supabaseAdmin
       .from('records')
       .select('*')
-      .or(`title.ilike.%${q}%,body.ilike.%${q}%,category.ilike.%${q}%`)
+      .or(`title.ilike.%${safe}%,body.ilike.%${safe}%,category.ilike.%${safe}%`)
       .order('occurred_at', { ascending: false })
-      .limit(10);
+      .limit(20);
 
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      return NextResponse.json({
-        answer: '저장된 기록에서 관련 결과를 찾지 못했습니다.',
-        sources: []
-      });
+      return NextResponse.json({ answer: '저장된 기록에서 관련 결과를 찾지 못했습니다.', sources: [] });
     }
 
     return NextResponse.json({
@@ -35,9 +30,6 @@ export async function POST(req: Request) {
       sources: data
     });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: e.message || '검색 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: e.message || '검색 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

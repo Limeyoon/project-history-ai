@@ -1,180 +1,207 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type RecordItem = {
   id: string;
   title: string;
-  content: string;
+  body: string;
   occurred_at: string | null;
   category: string | null;
-  tags: string | null;
-  images?: string[];
+  tags: string[] | null;
+  image_urls: string[] | null;
+  created_at: string;
 };
 
 const categories = [
-  { title: '자주 질문하는 디자인 시스템', desc: '가이드, 컴포넌트, 토큰 등', key: '디자인 시스템', icon: '◆' },
-  { title: '광고주 예외 케이스', desc: '예외 케이스와 특이사항', key: '광고주 예외', icon: '□' },
-  { title: '폰트', desc: '타이포그래피와 적용 규칙', key: '폰트', icon: 'Aa' },
-  { title: '개발', desc: '개발 가이드, 이슈, 해결', key: '개발', icon: '<>' },
-  { title: '기타', desc: '그 외 자주 묻는 정보', key: '기타', icon: '…' }
+  { title: '자주 질문하는 디자인 시스템', desc: '가이드, 컴포넌트, 토큰 등', icon: '◆' },
+  { title: '광고주 예외 케이스', desc: '예외 케이스와 특이사항', icon: '▣' },
+  { title: '폰트', desc: '타이포그래피와 적용 규칙', icon: 'Aa' },
+  { title: '개발', desc: '개발 가이드, 이슈, 해결', icon: '<>' },
+  { title: '기타', desc: '그 외 자주 묻는 정보', icon: '···' }
 ];
 
 export default function Page() {
   const [records, setRecords] = useState<RecordItem[]>([]);
-  const [query, setQuery] = useState('');
+  const [sources, setSources] = useState<RecordItem[]>([]);
   const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [form, setForm] = useState({ title: '', content: '', occurred_at: '', category: '디자인 시스템', tags: '' });
+  const [error, setError] = useState('');
+  const [question, setQuestion] = useState('');
+  const [openForm, setOpenForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    title: '',
+    body: '',
+    occurred_at: '',
+    category: '디자인 시스템',
+    tags: ''
+  });
+  const [files, setFiles] = useState<File[]>([]);
 
-  async function loadRecords(q = '') {
-    setLoading(true);
-    setMessage('');
-    try {
-      const res = await fetch(`/api/records${q ? `?q=${encodeURIComponent(q)}` : ''}`, { cache: 'no-store' });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || '불러오기에 실패했습니다.');
-      setRecords(json.records || []);
-      if (q && (json.records || []).length === 0) setMessage('저장된 기록에서 관련 결과를 찾지 못했습니다.');
-    } catch (e: any) {
-      setMessage(e.message || '오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
+  async function loadRecords() {
+    setError('');
+    const res = await fetch('/api/records', { cache: 'no-store' });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error || '기록을 불러오지 못했습니다.');
+      return;
     }
+    setRecords(json.records || []);
   }
 
-  useEffect(() => { loadRecords(); }, []);
+  useEffect(() => {
+    loadRecords();
+  }, []);
 
-  const recordCount = records.length;
+  async function search() {
+    setError('');
+    setMessage('');
+    setSources([]);
 
-  function chooseCategory(key: string) {
-    setQuery(key);
-    loadRecords(key);
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error || '검색에 실패했습니다.');
+      return;
+    }
+    setMessage(json.answer || '검색 완료');
+    setSources(json.sources || []);
   }
 
-  function onFiles(files: FileList | null) {
-    if (!files) return;
-    const arr = Array.from(files).filter((file) => file.type.startsWith('image/')).slice(0, 8);
-    setSelectedFiles(arr);
-    previews.forEach((url) => URL.revokeObjectURL(url));
-    setPreviews(arr.map((file) => URL.createObjectURL(file)));
-  }
-
-  async function uploadImages() {
-    const paths: string[] = [];
-    for (const file of selectedFiles) {
-      const signRes = await fetch('/api/images/sign', {
+  async function uploadImages(): Promise<string[]> {
+    const urls: string[] = [];
+    for (const file of files) {
+      const signRes = await fetch('/api/upload-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type })
+        body: JSON.stringify({ fileName: file.name, contentType: file.type })
       });
       const sign = await signRes.json();
-      if (!signRes.ok) throw new Error(sign.error || '이미지 업로드 준비 실패');
+      if (!signRes.ok) throw new Error(sign.error || '업로드 URL 생성 실패');
 
       const uploadRes = await fetch(sign.signedUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
         body: file
       });
       if (!uploadRes.ok) throw new Error('이미지 업로드 실패');
-      paths.push(sign.path);
+
+      const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/history-images/${sign.path}`;
+      urls.push(publicUrl);
     }
-    return paths;
+    return urls;
   }
 
-  async function saveRecord(e: FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
+  async function saveRecord() {
     try {
-      const imagePaths = await uploadImages();
+      setSaving(true);
+      setError('');
+      const imageUrls = await uploadImages();
+
+      const payload = {
+        title: form.title,
+        body: form.body,
+        occurred_at: form.occurred_at,
+        category: form.category,
+        tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        image_urls: imageUrls
+      };
+
       const res = await fetch('/api/records', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, imagePaths })
+        body: JSON.stringify(payload)
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '저장 실패');
-      setForm({ title: '', content: '', occurred_at: '', category: '디자인 시스템', tags: '' });
-      setSelectedFiles([]);
-      previews.forEach((url) => URL.revokeObjectURL(url));
-      setPreviews([]);
-      setFormOpen(false);
-      await loadRecords(query);
-      setMessage('히스토리가 저장되었습니다.');
+
+      setForm({ title: '', body: '', occurred_at: '', category: '디자인 시스템', tags: '' });
+      setFiles([]);
+      setOpenForm(false);
+      await loadRecords();
     } catch (e: any) {
-      setMessage(e.message || '저장 중 오류가 발생했습니다.');
+      setError(e.message || '저장 실패');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   }
 
-  function search(e: FormEvent) {
-    e.preventDefault();
-    loadRecords(query);
-  }
+  const visibleRecords = sources.length > 0 ? sources : records;
 
   return (
-    <>
-      <header className="header">
-        <div className="logo"><div className="logoMark" />Project History AI</div>
+    <main>
+      <header className="topbar">
+        <div className="brandMark" />
+        <strong>Project History AI</strong>
         <div className="avatar">S</div>
       </header>
 
-      <main className="main">
-        <section className="cards">
-          {categories.map((cat, i) => (
-            <button key={cat.title} className={`card ${i === 0 ? 'active' : ''}`} onClick={() => chooseCategory(cat.key)}>
-              <div className="icon">{cat.icon}</div>
-              <h3>{cat.title}</h3>
-              <p>{cat.desc}</p>
+      <section className="hero">
+        <div className="cards">
+          {categories.map((c, idx) => (
+            <button className={`category ${idx === 0 ? 'active' : ''}`} key={c.title} onClick={() => setQuestion(c.title)}>
+              <span>{c.icon}</span>
+              <strong>{c.title}</strong>
+              <p>{c.desc}</p>
             </button>
           ))}
-        </section>
+        </div>
 
-        <section className="hero">
-          <h1>무엇을 도와드릴까요?</h1>
-          <p>저장된 프로젝트 히스토리에서 제목, 내용, 카테고리, 태그를 검색합니다.</p>
-          <form className="search" onSubmit={search}>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="질문 또는 키워드를 입력해 주세요..." />
-            <button aria-label="검색">→</button>
-          </form>
-        </section>
+        <h1>무엇을 도와드릴까요?</h1>
+        <p className="sub">저장된 프로젝트 히스토리에서 제목, 내용, 카테고리를 검색합니다.</p>
+
+        <div className="searchBox">
+          <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="예: 디자인 시스템, VCG, 폰트" onKeyDown={(e) => e.key === 'Enter' && search()} />
+          <button onClick={search}>→</button>
+        </div>
 
         {message && <div className="notice">{message}</div>}
+        {error && <div className="error">{error}</div>}
+      </section>
 
-        <section className="cta">
-          <button className="primary" onClick={() => setFormOpen((v) => !v)}>+ 히스토리 등록</button>
-          <span>새로운 프로젝트 히스토리와 참조 이미지를 등록하세요. 현재 {recordCount}건 저장됨.</span>
-        </section>
+      <section className="registerBand">
+        <button onClick={() => setOpenForm((v) => !v)}>+ 히스토리 등록</button>
+        <p>새로운 프로젝트 히스토리와 참조 이미지를 등록하세요. 현재 {records.length}건 저장됨.</p>
+      </section>
 
-        <form className={`form ${formOpen ? 'open' : ''}`} onSubmit={saveRecord}>
-          <div className="grid">
-            <div className="field"><label>발생 날짜</label><input type="date" value={form.occurred_at} onChange={(e) => setForm({ ...form, occurred_at: e.target.value })} /></div>
-            <div className="field"><label>카테고리</label><select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>{categories.map((c) => <option key={c.key}>{c.key}</option>)}</select></div>
+      {openForm && (
+        <section className="formCard">
+          <div className="formGrid">
+            <input placeholder="제목" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <input type="date" value={form.occurred_at} onChange={(e) => setForm({ ...form, occurred_at: e.target.value })} />
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              {['디자인 시스템', '광고주 예외 케이스', '폰트', '개발', '기타'].map((c) => <option key={c}>{c}</option>)}
+            </select>
+            <input placeholder="태그: Shop App, VCG" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
           </div>
-          <div className="field"><label>제목</label><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="예: 2023년 Shop App 디자인 시스템 파일 수령" required /></div>
-          <div className="field"><label>상세 내용</label><textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="무슨 일이 있었는지, 근거와 맥락을 적어주세요." required /></div>
-          <div className="field"><label>태그</label><input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="Shop App, VCG, Phase0" /></div>
-          <div className="field upload"><label>참조 이미지</label><input type="file" accept="image/*" multiple onChange={(e) => onFiles(e.target.files)} />{previews.length > 0 && <div className="preview">{previews.map((src) => <img key={src} src={src} alt="preview" />)}</div>}</div>
-          <button className="primary" disabled={loading}>{loading ? '처리 중...' : '저장'}</button>
-        </form>
-
-        <section className="records">
-          {records.map((record) => (
-            <article className="record" key={record.id}>
-              <div className="meta">{record.occurred_at || '날짜 없음'} · {record.category || '카테고리 없음'}</div>
-              <h3>{record.title}</h3>
-              <p>{record.content}</p>
-              {record.tags && <div className="meta">태그: {record.tags}</div>}
-              {!!record.images?.length && <div className="images">{record.images.map((img) => <a key={img} href={img} target="_blank"><img src={img} alt="첨부 이미지" /></a>)}</div>}
-            </article>
-          ))}
+          <textarea placeholder="상세 내용을 입력하세요." value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
+          <label className="fileDrop">
+            <input type="file" accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} />
+            이미지 첨부 {files.length ? `(${files.length}개 선택됨)` : '(선택)'}
+          </label>
+          <button className="saveBtn" disabled={saving || !form.title || !form.body} onClick={saveRecord}>{saving ? '저장 중...' : '저장'}</button>
         </section>
-      </main>
-    </>
+      )}
+
+      <section className="records">
+        {visibleRecords.map((r) => (
+          <article className="record" key={r.id}>
+            <p className="meta">{r.occurred_at || '날짜 없음'} · {r.category || '기타'}</p>
+            <h3>{r.title}</h3>
+            <p>{r.body}</p>
+            {!!r.tags?.length && <p className="tags">태그: {r.tags.join(', ')}</p>}
+            {!!r.image_urls?.length && (
+              <div className="images">
+                {r.image_urls.map((url) => <img key={url} src={url} alt="참조 이미지" />)}
+              </div>
+            )}
+          </article>
+        ))}
+      </section>
+    </main>
   );
 }
