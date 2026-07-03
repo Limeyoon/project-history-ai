@@ -1,26 +1,22 @@
-# Project History AI
+# Project History AI - Search Version
 
-Apple/Google 스타일의 프로젝트 히스토리 아카이브 웹앱입니다.
+AI 없이 먼저 동작하는 프로젝트 히스토리 아카이브입니다.
 
 ## 기능
 - 상단 카테고리 카드
-- 중앙 AI 질문 검색
+- 중앙 일반 검색: 제목/내용/카테고리/태그 검색
 - 하단 히스토리 등록
-- 이미지 직접 업로드
-- Supabase DB/Storage 저장
-- OpenAI RAG 답변
+- 참조 이미지 업로드
+- Supabase DB + Storage 사용
+- OpenAI API Key 불필요
 
-## 배포 순서
-1. Supabase 새 프로젝트 생성
-2. Supabase SQL Editor에서 `supabase/schema.sql` 전체 실행
-3. GitHub 새 저장소에 이 프로젝트 파일 업로드
-4. Vercel에서 GitHub 저장소 Import
-5. Vercel 환경변수 추가
+## Vercel 환경변수
 
 ```txt
-NEXT_PUBLIC_SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
-OPENAI_API_KEY
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_or_service_role_key
 ```
 
-`OPENAI_API_KEY`가 없으면 기록 저장은 가능하고 AI 답변만 비활성화됩니다.
+## Supabase 설정
+Supabase SQL Editor에서 `supabase/schema.sql` 전체를 실행하세요.
+RLS 경고가 뜨면 `Run without RLS`로 실행해도 됩니다.

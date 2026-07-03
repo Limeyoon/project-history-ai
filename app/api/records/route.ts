@@ -1,71 +1,88 @@
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '../../../lib/supabase';
-import { makeEmbedding } from '../../../lib/openai';
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-type Payload = {
+type RecordImage = { path: string };
+
+type RecordRow = {
+  id: string;
   title: string;
-  body: string;
-  occurred_at?: string;
-  category?: string;
-  tags?: string;
-  source_url?: string;
-  image_paths?: string[];
+  content: string;
+  occurred_at: string | null;
+  category: string | null;
+  tags: string | null;
+  created_at: string;
+  record_images?: RecordImage[];
 };
 
-export async function GET() {
-  const { data, error } = await supabaseAdmin
-    .from('records')
-    .select('*, record_images(*)')
-    .order('occurred_at', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ records: data ?? [] });
+function imageUrl(path: string) {
+  const { data } = supabaseAdmin.storage.from('history-images').getPublicUrl(path);
+  return data.publicUrl;
 }
 
-export async function POST(req: Request) {
+function normalizeRecord(record: RecordRow) {
+  return {
+    ...record,
+    images: (record.record_images || []).map((img) => imageUrl(img.path))
+  };
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const payload = (await req.json()) as Payload;
-    if (!payload.title || !payload.body) {
+    const q = request.nextUrl.searchParams.get('q')?.trim() || '';
+
+    let query = supabaseAdmin
+      .from('records')
+      .select('*, record_images(path)')
+      .order('occurred_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false });
+
+    if (q) {
+      const safe = q.replaceAll('%', '').replaceAll(',', ' ');
+      query = query.or(`title.ilike.%${safe}%,content.ilike.%${safe}%,category.ilike.%${safe}%,tags.ilike.%${safe}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return NextResponse.json({ records: (data || []).map((r) => normalizeRecord(r as RecordRow)) });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to load records' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { title, content, occurred_at, category, tags, imagePaths } = body;
+
+    if (!title || !content) {
       return NextResponse.json({ error: '제목과 상세 내용은 필수입니다.' }, { status: 400 });
     }
 
-    const tags = payload.tags ? payload.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
     const { data: record, error } = await supabaseAdmin
       .from('records')
       .insert({
-        title: payload.title,
-        body: payload.body,
-        occurred_at: payload.occurred_at || null,
-        category: payload.category || '기타',
-        tags,
-        source_url: payload.source_url || null
+        title,
+        content,
+        occurred_at: occurred_at || null,
+        category: category || null,
+        tags: tags || ''
       })
-      .select('*')
+      .select()
       .single();
 
     if (error) throw error;
 
-    if (payload.image_paths?.length) {
-      const rows = payload.image_paths.map((path) => ({ record_id: record.id, path }));
-      const img = await supabaseAdmin.from('record_images').insert(rows);
-      if (img.error) throw img.error;
-    }
-
-    const embedding = await makeEmbedding(`${payload.title}\n${payload.body}\n${tags.join(', ')}`);
-    if (embedding) {
-      const chunk = await supabaseAdmin.from('record_chunks').insert({
-        record_id: record.id,
-        chunk_text: `${payload.title}\n${payload.body}`,
-        embedding
-      });
-      if (chunk.error) throw chunk.error;
+    if (Array.isArray(imagePaths) && imagePaths.length) {
+      const rows = imagePaths.map((path: string) => ({ record_id: record.id, path }));
+      const { error: imgError } = await supabaseAdmin.from('record_images').insert(rows);
+      if (imgError) throw imgError;
     }
 
     return NextResponse.json({ record });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? '저장 중 오류가 발생했습니다.' }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to save record' }, { status: 500 });
   }
 }
