@@ -10,6 +10,9 @@ create table if not exists history_entries (
   content text not null,
   tags text[] default '{}',
   image_url text,
+  reference_url text,
+  created_by text,
+  updated_by text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -17,10 +20,12 @@ create table if not exists history_entries (
 create index if not exists history_entries_date_idx on history_entries (entry_date desc);
 create index if not exists history_entries_category_idx on history_entries (category);
 
--- 기존에 이미 history_entries 테이블을 만든 경우, 아래 두 줄만 실행해서
--- category / image_url / updated_at 컬럼만 추가하세요.
+-- 기존에 이미 history_entries 테이블을 만든 경우, 아래 컬럼들만 실행해서 추가하세요.
 -- alter table history_entries add column if not exists category text not null default '기타';
 -- alter table history_entries add column if not exists image_url text;
+-- alter table history_entries add column if not exists reference_url text;
+-- alter table history_entries add column if not exists created_by text;
+-- alter table history_entries add column if not exists updated_by text;
 -- alter table history_entries add column if not exists updated_at timestamptz not null default now();
 
 alter table history_entries enable row level security;

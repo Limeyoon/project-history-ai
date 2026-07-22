@@ -166,6 +166,16 @@ export default function Home() {
                     />
                   )}
                   <p className="entry-content">{entry.content}</p>
+                  {entry.reference_url && (
+                    <a
+                      href={entry.reference_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="entry-reference-link"
+                    >
+                      참고 URL 열기 ↗
+                    </a>
+                  )}
                   {entry.tags && entry.tags.length > 0 && (
                     <div className="tag-row">
                       {entry.tags.map((t) => (
@@ -174,6 +184,17 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
+                  )}
+                  {(entry.created_by || entry.updated_by) && (
+                    <p className="entry-author-meta">
+                      {entry.created_by ? `등록: ${entry.created_by}` : ''}
+                      {entry.updated_by &&
+                      entry.updated_by !== entry.created_by
+                        ? `${entry.created_by ? ' · ' : ''}최근 수정: ${
+                            entry.updated_by
+                          } (${formatDate(entry.updated_at)})`
+                        : ''}
+                    </p>
                   )}
                 </article>
               );

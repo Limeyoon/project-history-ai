@@ -29,8 +29,16 @@ export default async function handler(req, res) {
     if (!checkAdmin(req)) {
       return res.status(401).json({ error: '관리자 비밀번호가 올바르지 않습니다.' });
     }
-    const { entry_date, title, content, tags, category, image_url } =
-      req.body || {};
+    const {
+      entry_date,
+      title,
+      content,
+      tags,
+      category,
+      image_url,
+      reference_url,
+      author_name,
+    } = req.body || {};
     if (!entry_date || !title || !content) {
       return res
         .status(400)
@@ -46,6 +54,9 @@ export default async function handler(req, res) {
           category: category || '기타',
           tags: Array.isArray(tags) ? tags : [],
           image_url: image_url || null,
+          reference_url: reference_url || null,
+          created_by: author_name || null,
+          updated_by: author_name || null,
         },
       ])
       .select();
@@ -58,8 +69,17 @@ export default async function handler(req, res) {
     if (!checkAdmin(req)) {
       return res.status(401).json({ error: '관리자 비밀번호가 올바르지 않습니다.' });
     }
-    const { id, entry_date, title, content, tags, category, image_url } =
-      req.body || {};
+    const {
+      id,
+      entry_date,
+      title,
+      content,
+      tags,
+      category,
+      image_url,
+      reference_url,
+      author_name,
+    } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id가 필요합니다.' });
     if (!entry_date || !title || !content) {
       return res
@@ -75,6 +95,8 @@ export default async function handler(req, res) {
         category: category || '기타',
         tags: Array.isArray(tags) ? tags : [],
         image_url: image_url || null,
+        reference_url: reference_url || null,
+        updated_by: author_name || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

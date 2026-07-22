@@ -11,6 +11,7 @@ const EMPTY_FORM = {
   content: '',
   tags: '',
   image_url: '',
+  reference_url: '',
 };
 
 export default function Admin() {
@@ -18,6 +19,7 @@ export default function Admin() {
   const [unlocked, setUnlocked] = useState(false);
   const [entries, setEntries] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [authorName, setAuthorName] = useState('');
   const [status, setStatus] = useState(null); // { type: 'ok'|'error', msg }
   const [submitting, setSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
@@ -26,6 +28,16 @@ export default function Admin() {
   const fileInputRef = useRef(null);
 
   const isEditing = Boolean(form.id);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('ph_author_name');
+    if (saved) setAuthorName(saved);
+  }, []);
+
+  const handleAuthorNameChange = (value) => {
+    setAuthorName(value);
+    window.localStorage.setItem('ph_author_name', value);
+  };
 
   const loadEntries = () => {
     fetch('/api/records')
@@ -54,6 +66,7 @@ export default function Admin() {
       content: entry.content,
       tags: (entry.tags || []).join(', '),
       image_url: entry.image_url || '',
+      reference_url: entry.reference_url || '',
     });
     setImageFile(null);
     setImagePreview(entry.image_url || '');
@@ -110,6 +123,10 @@ export default function Admin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!authorName.trim()) {
+      setStatus({ type: 'error', msg: '작성자 이름을 입력해주세요.' });
+      return;
+    }
     setSubmitting(true);
     setStatus(null);
     try {
@@ -125,6 +142,8 @@ export default function Admin() {
           .map((t) => t.trim())
           .filter(Boolean),
         image_url: uploadedUrl,
+        reference_url: form.reference_url.trim() || null,
+        author_name: authorName.trim(),
       };
 
       const res = await fetch('/api/records', {
@@ -245,6 +264,16 @@ export default function Admin() {
             />
           </div>
           <div className="field">
+            <label>작성자</label>
+            <input
+              type="text"
+              required
+              placeholder="예: 홍길동"
+              value={authorName}
+              onChange={(e) => handleAuthorNameChange(e.target.value)}
+            />
+          </div>
+          <div className="field">
             <label>카테고리</label>
             <select
               value={form.category}
@@ -284,6 +313,17 @@ export default function Admin() {
               placeholder="예: 계약, 파트너십, 예산"
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
+            />
+          </div>
+          <div className="field">
+            <label>참고 URL (선택)</label>
+            <input
+              type="url"
+              placeholder="예: https://drive.google.com/..."
+              value={form.reference_url}
+              onChange={(e) =>
+                setForm({ ...form, reference_url: e.target.value })
+              }
             />
           </div>
           <div className="field">
@@ -368,6 +408,13 @@ export default function Admin() {
                 <div className="meta">
                   {e.entry_date} · {e.category}
                   {e.image_url ? ' · 이미지 있음' : ''}
+                  {e.reference_url ? ' · URL 있음' : ''}
+                </div>
+                <div className="meta">
+                  {e.created_by ? `등록: ${e.created_by}` : '등록자 미상'}
+                  {e.updated_by && e.updated_by !== e.created_by
+                    ? ` · 최근 수정: ${e.updated_by}`
+                    : ''}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
