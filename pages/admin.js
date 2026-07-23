@@ -3,6 +3,15 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { CATEGORIES } from '../lib/categories';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yy}.${mm}.${dd}`;
+}
+
 const EMPTY_FORM = {
   id: null,
   entry_date: '',
@@ -411,10 +420,15 @@ export default function Admin() {
                   {e.reference_url ? ' · URL 있음' : ''}
                 </div>
                 <div className="meta">
-                  {e.created_by ? `등록: ${e.created_by}` : '등록자 미상'}
-                  {e.updated_by && e.updated_by !== e.created_by
-                    ? ` · 최근 수정: ${e.updated_by}`
-                    : ''}
+                  {[
+                    e.created_by ? `등록: ${e.created_by}` : null,
+                    e.updated_by && e.updated_by !== e.created_by
+                      ? `최근 수정: ${e.updated_by}`
+                      : null,
+                    e.updated_at ? `최종 수정일: ${formatDate(e.updated_at)}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>

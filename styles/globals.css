@@ -94,6 +94,17 @@ button {
   color: var(--accent);
 }
 
+.topbar-link-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
 /* Category grid */
 .category-grid {
   display: grid;

@@ -76,9 +76,30 @@ export default function Home() {
             <span className="brand-mark" />
             Project History AI
           </div>
-          <Link href="/admin" className="topbar-link">
+          <Link href="/admin" className="topbar-link topbar-link-edit">
+            <span className="edit-icon" aria-hidden="true">✎</span>
             관리자
           </Link>
+        </div>
+
+        <div className="hero">
+          <h1 className="hero-title">무엇을 도와드릴까요?</h1>
+          <p className="hero-sub">
+            저장된 프로젝트 히스토리에서 제목, 내용, 카테고리, 태그를 검색합니다.
+            {' '}현재 {entries.length}건 저장됨.
+          </p>
+          <form className="search-box" onSubmit={handleSearchSubmit}>
+            <input
+              className="search-input"
+              type="text"
+              placeholder="궁금한 내용을 검색해보세요"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button className="search-submit" type="submit" aria-label="검색">
+              →
+            </button>
+          </form>
         </div>
 
         <div className="category-grid">
@@ -104,25 +125,6 @@ export default function Home() {
               </span>
             </button>
           ))}
-        </div>
-
-        <div className="hero">
-          <h1 className="hero-title">무엇을 도와드릴까요?</h1>
-          <p className="hero-sub">
-            저장된 프로젝트 히스토리에서 제목, 내용, 카테고리, 태그를 검색합니다.
-          </p>
-          <form className="search-box" onSubmit={handleSearchSubmit}>
-            <input
-              className="search-input"
-              type="text"
-              placeholder="궁금한 내용을 검색해보세요"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <button className="search-submit" type="submit" aria-label="검색">
-              →
-            </button>
-          </form>
         </div>
 
         {hasActiveFilter && !loading && (
@@ -201,16 +203,6 @@ export default function Home() {
             })}
           </div>
         )}
-
-        <div className="register-bar">
-          <Link href="/admin" className="btn-primary">
-            + 히스토리 등록
-          </Link>
-          <span className="register-note">
-            새로운 프로젝트 히스토리를 등록하세요. 현재 {entries.length}건
-            저장됨.
-          </span>
-        </div>
       </div>
     </>
   );
