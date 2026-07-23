@@ -34,14 +34,6 @@ export default function Home() {
     };
   }, []);
 
-  const countByCategory = useMemo(() => {
-    const map = {};
-    entries.forEach((e) => {
-      map[e.category] = (map[e.category] || 0) + 1;
-    });
-    return map;
-  }, [entries]);
-
   const filtered = useMemo(() => {
     const q = submittedQuery.trim().toLowerCase();
     return entries.filter((e) => {
@@ -116,24 +108,10 @@ export default function Home() {
               >
                 {c.icon}
               </span>
-              <div>
-                <div className="category-title">{c.label}</div>
-                <div className="category-desc">{c.desc}</div>
-              </div>
-              <span className="category-count">
-                {countByCategory[c.id] || 0}건
-              </span>
+              <div className="category-title">{c.label}</div>
             </button>
           ))}
         </div>
-
-        {hasActiveFilter && !loading && (
-          <p className="search-meta">
-            {activeCategory ? `${activeCategory} · ` : ''}
-            {submittedQuery ? `"${submittedQuery}" · ` : ''}
-            {filtered.length}건 검색됨
-          </p>
-        )}
 
         {loadError && <div className="notice">{loadError}</div>}
 
@@ -202,6 +180,14 @@ export default function Home() {
               );
             })}
           </div>
+        )}
+
+        {hasActiveFilter && !loading && (
+          <p className="search-meta search-meta-bottom">
+            {activeCategory ? `${activeCategory} · ` : ''}
+            {submittedQuery ? `"${submittedQuery}" · ` : ''}
+            {filtered.length}건 검색됨
+          </p>
         )}
       </div>
     </>
