@@ -218,7 +218,7 @@ function CategoryIcon({ icon, color }) {
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: color,
-    strokeWidth: 1.5,
+    strokeWidth: 1.6,
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
   };
@@ -226,8 +226,17 @@ function CategoryIcon({ icon, color }) {
   if (icon === 'design') {
     return (
       <svg {...common}>
-        <rect x="4" y="4" width="16" height="16" rx="3" />
-        <rect x="8.5" y="8.5" width="7" height="7" rx="1.5" />
+        <rect x="4" y="4" width="16" height="16" rx="4" />
+        <rect
+          x="8.5"
+          y="8.5"
+          width="7"
+          height="7"
+          rx="2"
+          fill={`${color}26`}
+          stroke={color}
+          strokeWidth="1.4"
+        />
       </svg>
     );
   }
@@ -235,9 +244,13 @@ function CategoryIcon({ icon, color }) {
   if (icon === 'exception') {
     return (
       <svg {...common}>
-        <path d="M12 3.5 L21 19.5 L3 19.5 Z" strokeLinejoin="round" />
-        <line x1="12" y1="9.5" x2="12" y2="14" />
-        <circle cx="12" cy="17" r="0.6" fill={color} stroke="none" />
+        <path
+          d="M12 3.5 L21 19.5 L3 19.5 Z"
+          fill={`${color}1f`}
+          strokeLinejoin="round"
+        />
+        <line x1="12" y1="9.3" x2="12" y2="14" />
+        <circle cx="12" cy="16.8" r="0.7" fill={color} stroke="none" />
       </svg>
     );
   }
@@ -245,8 +258,16 @@ function CategoryIcon({ icon, color }) {
   if (icon === 'typography') {
     return (
       <svg {...common}>
-        <line x1="6" y1="6.5" x2="18" y2="6.5" />
-        <line x1="12" y1="6.5" x2="12" y2="18" />
+        <rect
+          x="5.5"
+          y="5.5"
+          width="13"
+          height="3"
+          rx="1.5"
+          fill={`${color}26`}
+          stroke="none"
+        />
+        <line x1="12" y1="7" x2="12" y2="18.5" />
       </svg>
     );
   }
@@ -256,6 +277,7 @@ function CategoryIcon({ icon, color }) {
       <svg {...common}>
         <polyline points="9 6 3.5 12 9 18" />
         <polyline points="15 6 20.5 12 15 18" />
+        <circle cx="12" cy="12" r="1.3" fill={`${color}55`} stroke="none" />
       </svg>
     );
   }
@@ -263,9 +285,9 @@ function CategoryIcon({ icon, color }) {
   // etc
   return (
     <svg {...common} fill={color} stroke="none">
-      <circle cx="6" cy="12" r="1.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="18" cy="12" r="1.6" />
+      <circle cx="6" cy="12" r="1.7" />
+      <circle cx="12" cy="12" r="1.7" fillOpacity="0.55" />
+      <circle cx="18" cy="12" r="1.7" fillOpacity="0.3" />
     </svg>
   );
 }
