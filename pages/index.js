@@ -75,7 +75,7 @@ export default function Home() {
           </div>
           <Link href="/admin" className="topbar-link topbar-link-edit">
             <span className="edit-icon" aria-hidden="true">✎</span>
-            히스토리 등록/관리
+            Edit
           </Link>
         </div>
 
@@ -213,12 +213,12 @@ export default function Home() {
 
 function CategoryIcon({ icon, color }) {
   const common = {
-    width: 32,
-    height: 32,
+    width: 24,
+    height: 24,
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: color,
-    strokeWidth: 1.6,
+    strokeWidth: 1.5,
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
   };
@@ -226,10 +226,8 @@ function CategoryIcon({ icon, color }) {
   if (icon === 'design') {
     return (
       <svg {...common}>
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        <rect x="4" y="4" width="16" height="16" rx="3" />
+        <rect x="8.5" y="8.5" width="7" height="7" rx="1.5" />
       </svg>
     );
   }
@@ -237,24 +235,27 @@ function CategoryIcon({ icon, color }) {
   if (icon === 'exception') {
     return (
       <svg {...common}>
-        <path d="M12 3 L22 20 L2 20 Z" />
-        <line x1="12" y1="9" x2="12" y2="14" />
-        <circle cx="12" cy="17.3" r="0.6" fill={color} stroke="none" />
+        <path d="M12 3.5 L21 19.5 L3 19.5 Z" strokeLinejoin="round" />
+        <line x1="12" y1="9.5" x2="12" y2="14" />
+        <circle cx="12" cy="17" r="0.6" fill={color} stroke="none" />
       </svg>
     );
   }
 
   if (icon === 'typography') {
     return (
-      <span style={{ fontSize: 26, fontWeight: 800, color }}>Aa</span>
+      <svg {...common}>
+        <line x1="6" y1="6.5" x2="18" y2="6.5" />
+        <line x1="12" y1="6.5" x2="12" y2="18" />
+      </svg>
     );
   }
 
   if (icon === 'dev') {
     return (
       <svg {...common}>
-        <polyline points="8 6 3 12 8 18" />
-        <polyline points="16 6 21 12 16 18" />
+        <polyline points="9 6 3.5 12 9 18" />
+        <polyline points="15 6 20.5 12 15 18" />
       </svg>
     );
   }
@@ -262,9 +263,9 @@ function CategoryIcon({ icon, color }) {
   // etc
   return (
     <svg {...common} fill={color} stroke="none">
-      <circle cx="5" cy="12" r="1.8" />
-      <circle cx="12" cy="12" r="1.8" />
-      <circle cx="19" cy="12" r="1.8" />
+      <circle cx="6" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="18" cy="12" r="1.6" />
     </svg>
   );
 }

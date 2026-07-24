@@ -169,13 +169,11 @@ button {
 }
 
 .category-icon {
-  width: 40px;
-  height: 40px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 15px;
   flex-shrink: 0;
 }
 
