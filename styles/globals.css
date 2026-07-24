@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #f3f1ea;
+  --bg: #f6f7fb;
   --card: #ffffff;
-  --border: #e6e2d8;
-  --text: #15161a;
-  --text-dim: #6b6f76;
+  --border: #e7e9f1;
+  --text: #14161c;
+  --text-dim: #6b7280;
   --accent: #2f6fed;
-  --accent-soft: #e8f0fe;
+  --accent-soft: #eaf1ff;
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 8px;
@@ -73,10 +73,18 @@ button {
 }
 
 .brand-mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #2f6fed, #6f8cff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 -3px 6px rgba(0, 0, 0, 0.15),
+    inset 0 2px 3px rgba(255, 255, 255, 0.35),
+    0 3px 8px rgba(47, 111, 237, 0.35);
 }
 
 .topbar-link {
@@ -128,7 +136,7 @@ button {
 
 .category-card {
   background: var(--card);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   aspect-ratio: 1 / 1;
   padding: 20px;
@@ -140,11 +148,12 @@ button {
   align-items: center;
   justify-content: center;
   gap: 16px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 .category-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(20, 20, 30, 0.06);
+  box-shadow: 0 12px 26px rgba(16, 24, 40, 0.09);
 }
 
 .category-card.active {
@@ -153,15 +162,19 @@ button {
 }
 
 .category-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 22px;
   flex-shrink: 0;
+  box-shadow:
+    inset 0 -5px 8px rgba(0, 0, 0, 0.12),
+    inset 0 3px 4px rgba(255, 255, 255, 0.4),
+    0 4px 12px rgba(20, 20, 30, 0.12);
 }
 
 .category-title {
@@ -225,14 +238,14 @@ button {
 }
 
 .search-input::placeholder {
-  color: #b4b2a8;
+  color: #9aa1b1;
 }
 
 .search-submit {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: var(--text);
+  background: var(--accent);
   color: #fff;
   border: none;
   display: flex;
@@ -241,6 +254,7 @@ button {
   font-size: 16px;
   cursor: pointer;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(47, 111, 237, 0.3);
 }
 
 .search-meta {
@@ -355,7 +369,7 @@ button {
 .tag {
   font-size: 11.5px;
   color: var(--text-dim);
-  background: #f2f0ea;
+  background: #f1f2f6;
   border-radius: 999px;
   padding: 3px 9px;
 }

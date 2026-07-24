@@ -65,7 +65,21 @@ export default function Home() {
       <div className="layout">
         <div className="topbar">
           <div className="brand">
-            <span className="brand-mark" />
+            <span className="brand-mark">
+              <svg
+                viewBox="0 0 24 24"
+                width="17"
+                height="17"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15.5 14" />
+              </svg>
+            </span>
             Project History AI
           </div>
           <Link href="/admin" className="topbar-link topbar-link-edit">
@@ -104,9 +118,11 @@ export default function Home() {
             >
               <span
                 className="category-icon"
-                style={{ background: `${c.color}1a`, color: c.color }}
+                style={{
+                  background: `linear-gradient(135deg, ${c.color}, ${c.color}cc)`,
+                }}
               >
-                {c.icon}
+                <CategoryIcon icon={c.icon} />
               </span>
               <div className="category-title">{c.label}</div>
             </button>
@@ -191,6 +207,64 @@ export default function Home() {
         )}
       </div>
     </>
+  );
+}
+
+function CategoryIcon({ icon }) {
+  const common = {
+    width: 24,
+    height: 24,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: '#fff',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  };
+
+  if (icon === 'design') {
+    return (
+      <svg {...common}>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </svg>
+    );
+  }
+
+  if (icon === 'exception') {
+    return (
+      <svg {...common}>
+        <path d="M12 3 L22 20 L2 20 Z" />
+        <line x1="12" y1="9" x2="12" y2="14" />
+        <circle cx="12" cy="17.3" r="0.6" fill="#fff" stroke="none" />
+      </svg>
+    );
+  }
+
+  if (icon === 'typography') {
+    return (
+      <span style={{ fontSize: 21, fontWeight: 800, color: '#fff' }}>Aa</span>
+    );
+  }
+
+  if (icon === 'dev') {
+    return (
+      <svg {...common}>
+        <polyline points="8 6 3 12 8 18" />
+        <polyline points="16 6 21 12 16 18" />
+      </svg>
+    );
+  }
+
+  // etc
+  return (
+    <svg {...common} fill="#fff" stroke="none">
+      <circle cx="5" cy="12" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="19" cy="12" r="1.8" />
+    </svg>
   );
 }
 
