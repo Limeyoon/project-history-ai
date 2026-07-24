@@ -66,25 +66,16 @@ export default function Home() {
         <div className="topbar">
           <div className="brand">
             <span className="brand-mark">
-              <svg
-                viewBox="0 0 24 24"
-                width="17"
-                height="17"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="9" />
-                <polyline points="12 7 12 12 15.5 14" />
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">
+                <circle cx="12" cy="7.2" r="1.9" />
+                <rect x="10.3" y="10.5" width="3.4" height="9" rx="1.7" />
               </svg>
             </span>
             Project History AI
           </div>
           <Link href="/admin" className="topbar-link topbar-link-edit">
             <span className="edit-icon" aria-hidden="true">✎</span>
-            관리자
+            히스토리 등록/관리
           </Link>
         </div>
 
@@ -118,9 +109,7 @@ export default function Home() {
             >
               <span
                 className="category-icon"
-                style={{
-                  background: `linear-gradient(135deg, ${c.color}, ${c.color}cc)`,
-                }}
+                style={{ background: c.color }}
               >
                 <CategoryIcon icon={c.icon} />
               </span>
