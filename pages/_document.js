@@ -6,6 +6,7 @@ export default function Document() {
       <Head>
         <meta charSet="utf-8" />
         <meta name="description" content="프로젝트 히스토리 아카이브" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </Head>
       <body>
         <Main />

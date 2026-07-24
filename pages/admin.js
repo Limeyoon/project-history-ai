@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { CATEGORIES } from '../lib/categories';
 
 function formatDate(dateStr) {
@@ -24,6 +25,7 @@ const EMPTY_FORM = {
 };
 
 export default function Admin() {
+  const router = useRouter();
   const [password, setPassword] = useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [entries, setEntries] = useState([]);
@@ -58,6 +60,18 @@ export default function Admin() {
   useEffect(() => {
     if (unlocked) loadEntries();
   }, [unlocked]);
+
+  useEffect(() => {
+    if (!unlocked || !router.isReady) return;
+    const editId = router.query.edit;
+    if (!editId || entries.length === 0) return;
+    const target = entries.find((e) => String(e.id) === String(editId));
+    if (target) {
+      startEdit(target);
+      router.replace('/admin', undefined, { shallow: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unlocked, router.isReady, entries]);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -205,7 +219,12 @@ export default function Admin() {
         <div className="layout admin-panel">
           <div className="topbar">
             <div className="brand">
-              <span className="brand-mark" />
+              <span className="brand-mark">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">
+                <circle cx="12" cy="7.2" r="1.9" />
+                <rect x="10.3" y="10.5" width="3.4" height="9" rx="1.7" />
+              </svg>
+            </span>
               Project History AI
             </div>
             <Link href="/" className="topbar-link">
@@ -248,7 +267,12 @@ export default function Admin() {
       <div className="layout admin-panel">
         <div className="topbar">
           <div className="brand">
-            <span className="brand-mark" />
+            <span className="brand-mark">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">
+                <circle cx="12" cy="7.2" r="1.9" />
+                <rect x="10.3" y="10.5" width="3.4" height="9" rx="1.7" />
+              </svg>
+            </span>
             Project History AI
           </div>
           <Link href="/" className="topbar-link">

@@ -107,11 +107,8 @@ export default function Home() {
               onClick={() => toggleCategory(c.id)}
               type="button"
             >
-              <span
-                className="category-icon"
-                style={{ background: c.color }}
-              >
-                <CategoryIcon icon={c.icon} />
+              <span className="category-icon">
+                <CategoryIcon icon={c.icon} color={c.color} />
               </span>
               <div className="category-title">{c.label}</div>
             </button>
@@ -132,15 +129,23 @@ export default function Home() {
               return (
                 <article className="entry-card" key={entry.id}>
                   <div className="entry-top">
-                    <span
-                      className="entry-category-pill"
-                      style={{ background: `${meta.color}1a`, color: meta.color }}
+                    <div className="entry-top-left">
+                      <span
+                        className="entry-category-pill"
+                        style={{ background: `${meta.color}1a`, color: meta.color }}
+                      >
+                        {meta.label}
+                      </span>
+                      <span className="entry-date">
+                        {formatDate(entry.entry_date)}
+                      </span>
+                    </div>
+                    <Link
+                      href={`/admin?edit=${entry.id}`}
+                      className="entry-edit-link"
                     >
-                      {meta.label}
-                    </span>
-                    <span className="entry-date">
-                      {formatDate(entry.entry_date)}
-                    </span>
+                      ✎ 수정하기
+                    </Link>
                   </div>
                   <h2 className="entry-title">{entry.title}</h2>
                   {entry.image_url && (
@@ -161,15 +166,22 @@ export default function Home() {
                       참고 URL 열기 ↗
                     </a>
                   )}
-                  {entry.tags && entry.tags.length > 0 && (
-                    <div className="tag-row">
-                      {entry.tags.map((t) => (
-                        <span className="tag" key={t}>
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+                    const normalize = (s) => (s || '').replace(/\s+/g, '').toLowerCase();
+                    const visibleTags = (entry.tags || []).filter(
+                      (t) => normalize(t) !== normalize(entry.category)
+                    );
+                    if (visibleTags.length === 0) return null;
+                    return (
+                      <div className="tag-row">
+                        {visibleTags.map((t) => (
+                          <span className="tag" key={t}>
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   {(entry.created_by || entry.updated_by) && (
                     <p className="entry-author-meta">
                       {entry.created_by ? `등록: ${entry.created_by}` : ''}
@@ -199,14 +211,14 @@ export default function Home() {
   );
 }
 
-function CategoryIcon({ icon }) {
+function CategoryIcon({ icon, color }) {
   const common = {
-    width: 24,
-    height: 24,
+    width: 32,
+    height: 32,
     viewBox: '0 0 24 24',
     fill: 'none',
-    stroke: '#fff',
-    strokeWidth: 2,
+    stroke: color,
+    strokeWidth: 1.6,
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
   };
@@ -227,14 +239,14 @@ function CategoryIcon({ icon }) {
       <svg {...common}>
         <path d="M12 3 L22 20 L2 20 Z" />
         <line x1="12" y1="9" x2="12" y2="14" />
-        <circle cx="12" cy="17.3" r="0.6" fill="#fff" stroke="none" />
+        <circle cx="12" cy="17.3" r="0.6" fill={color} stroke="none" />
       </svg>
     );
   }
 
   if (icon === 'typography') {
     return (
-      <span style={{ fontSize: 21, fontWeight: 800, color: '#fff' }}>Aa</span>
+      <span style={{ fontSize: 26, fontWeight: 800, color }}>Aa</span>
     );
   }
 
@@ -249,7 +261,7 @@ function CategoryIcon({ icon }) {
 
   // etc
   return (
-    <svg {...common} fill="#fff" stroke="none">
+    <svg {...common} fill={color} stroke="none">
       <circle cx="5" cy="12" r="1.8" />
       <circle cx="12" cy="12" r="1.8" />
       <circle cx="19" cy="12" r="1.8" />
