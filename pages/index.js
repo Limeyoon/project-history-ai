@@ -66,29 +66,12 @@ export default function Home() {
         <div className="topbar">
           <div className="brand">
             <span className="brand-mark">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path
-                  d="M3 6.8c0-.66.54-1.2 1.2-1.2h4.7l1.3 1.4h8.6c.66 0 1.2.54 1.2 1.2v9.6c0 .66-.54 1.2-1.2 1.2H4.2c-.66 0-1.2-.54-1.2-1.2z"
-                  fill="#fff"
-                />
-                <circle
-                  cx="14.3"
-                  cy="14.3"
-                  r="3.1"
-                  fill="none"
-                  stroke="#2F6FED"
-                  strokeWidth="1.8"
-                />
-                <line
-                  x1="16.6"
-                  y1="16.6"
-                  x2="19"
-                  y2="19"
-                  stroke="#2F6FED"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/96/external-search-folder-tanah-basah-glyph-tanah-basah.png"
+                alt=""
+                width="18"
+                height="18"
+              />
             </span>
             History Archive
           </div>
@@ -135,7 +118,7 @@ export default function Home() {
               type="button"
             >
               <span className="category-icon">
-                <CategoryIcon icon={c.icon} color={c.color} />
+                <img src={c.icon} alt={c.label} width="34" height="34" />
               </span>
               <div className="category-title">{c.label}</div>
             </button>
@@ -235,64 +218,6 @@ export default function Home() {
         )}
       </div>
     </>
-  );
-}
-
-function CategoryIcon({ icon, color }) {
-  const shadow = { filter: 'drop-shadow(0 3px 5px rgba(20,20,30,0.18))' };
-
-  if (icon === 'design') {
-    // 팔레트 모양의 플랫 아이콘
-    return (
-      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
-        <ellipse cx="12" cy="12" rx="9.5" ry="8" fill={color} />
-        <circle cx="16.2" cy="14.3" r="2.6" fill="#fff" />
-        <circle cx="8.2" cy="8.8" r="1.4" fill="#fff" />
-        <circle cx="12.5" cy="6.8" r="1.4" fill="#fff" />
-        <circle cx="16.6" cy="8.8" r="1.4" fill="#fff" />
-      </svg>
-    );
-  }
-
-  if (icon === 'exception') {
-    // 핀(마커) 모양의 플랫 아이콘
-    return (
-      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
-        <path
-          d="M12 2.2c-4.42 0-8 3.53-8 7.88 0 5.9 8 11.7 8 11.7s8-5.8 8-11.7c0-4.35-3.58-7.88-8-7.88z"
-          fill={color}
-        />
-        <circle cx="12" cy="10" r="3.1" fill="#fff" />
-      </svg>
-    );
-  }
-
-  if (icon === 'typography') {
-    // 볼드 T 글자 형태의 플랫 아이콘
-    return (
-      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
-        <rect x="3.5" y="4" width="17" height="4.4" rx="2.2" fill={color} />
-        <rect x="9.8" y="4" width="4.4" height="16" rx="2.2" fill={color} />
-      </svg>
-    );
-  }
-
-  if (icon === 'dev') {
-    // 코드 브래킷 형태의 플랫(면 채움) 아이콘
-    return (
-      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
-        <polygon points="9.5,4.5 3,12 9.5,19.5 11.6,17.3 6.9,12 11.6,6.7" fill={color} />
-        <polygon points="14.5,4.5 21,12 14.5,19.5 12.4,17.3 17.1,12 12.4,6.7" fill={color} />
-      </svg>
-    );
-  }
-
-  // etc — 폴더 형태의 플랫 아이콘
-  return (
-    <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
-      <rect x="3.5" y="8.5" width="17" height="11.5" rx="2.4" fill={color} />
-      <rect x="3.5" y="5" width="8.5" height="4.4" rx="2.2" fill={color} />
-    </svg>
   );
 }
 
