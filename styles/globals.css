@@ -587,6 +587,14 @@ button {
   color: #16a34a;
 }
 
+.bulk-upload-box {
+  margin-top: 40px;
+  padding: 20px;
+  background: var(--card);
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+}
+
 .admin-list-item {
   display: flex;
   justify-content: space-between;

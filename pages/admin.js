@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import * as XLSX from 'xlsx';
 import { CATEGORIES } from '../lib/categories';
 
 function formatDate(dateStr) {
@@ -37,6 +38,9 @@ export default function Admin() {
   const [imagePreview, setImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
+  const bulkFileInputRef = useRef(null);
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState(null); // { type, msg }
 
   const isEditing = Boolean(form.id);
 
@@ -207,6 +211,157 @@ export default function Admin() {
     } else {
       if (form.id === id) resetForm();
       loadEntries();
+    }
+  };
+
+  const BULK_HEADERS = ['날짜', '카테고리', '제목', '내용', '태그', '참고URL', '작성자'];
+
+  const handleDownloadTemplate = () => {
+    const sample = [
+      BULK_HEADERS,
+      [
+        '2026-05-13',
+        CATEGORIES[0].label,
+        '[Button] Primary 버튼 코너 라운드 변경',
+        '코너 라운드값을 4px에서 8px로 조정. 브랜드 가이드라인 개정에 따른 변경.',
+        'Button, 코너라운드',
+        '',
+        authorName || '홍길동',
+      ],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(sample);
+    ws['!cols'] = [
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 36 },
+      { wch: 50 },
+      { wch: 20 },
+      { wch: 24 },
+      { wch: 10 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '히스토리');
+    XLSX.writeFile(wb, 'history-archive-template.xlsx');
+  };
+
+  const excelDateToISO = (value) => {
+    if (!value) return '';
+    if (value instanceof Date) {
+      const yy = value.getFullYear();
+      const mm = String(value.getMonth() + 1).padStart(2, '0');
+      const dd = String(value.getDate()).padStart(2, '0');
+      return `${yy}-${mm}-${dd}`;
+    }
+    const str = String(value).trim();
+    // "2026.5.13" 나 "2026/5/13" 같은 표기도 허용
+    const normalized = str.replace(/[./]/g, '-');
+    const m = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) {
+      return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    }
+    return str;
+  };
+
+  const resolveCategoryId = (label) => {
+    if (!label) return '기타';
+    const norm = String(label).trim();
+    const found = CATEGORIES.find(
+      (c) => c.label === norm || c.id === norm
+    );
+    return found ? found.id : null;
+  };
+
+  const handleBulkUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBulkStatus(null);
+    setBulkSubmitting(true);
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+      if (rows.length === 0) {
+        setBulkStatus({ type: 'error', msg: '엑셀 파일에 데이터가 없습니다.' });
+        return;
+      }
+
+      const entries = [];
+      const warnings = [];
+
+      rows.forEach((row, i) => {
+        const rowNo = i + 2; // 헤더가 1행이므로 실제 엑셀 행 번호
+        const title = String(row['제목'] || '').trim();
+        const content = String(row['내용'] || '').trim();
+        const entry_date = excelDateToISO(row['날짜']);
+
+        if (!entry_date || !title || !content) {
+          warnings.push(`${rowNo}행: 날짜/제목/내용이 비어있어 건너뜀`);
+          return;
+        }
+
+        let categoryId = resolveCategoryId(row['카테고리']);
+        if (categoryId === null) {
+          warnings.push(
+            `${rowNo}행: 카테고리 "${row['카테고리']}"를 찾을 수 없어 "기타"로 등록`
+          );
+          categoryId = '기타';
+        }
+
+        const tags = String(row['태그'] || '')
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+
+        entries.push({
+          entry_date,
+          category: categoryId,
+          title,
+          content,
+          tags,
+          reference_url: String(row['참고URL'] || '').trim() || null,
+          author_name: String(row['작성자'] || authorName || '').trim() || null,
+        });
+      });
+
+      if (entries.length === 0) {
+        setBulkStatus({
+          type: 'error',
+          msg: '등록 가능한 행이 없습니다. ' + warnings.join(' / '),
+        });
+        return;
+      }
+
+      const res = await fetch('/api/records-bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password,
+        },
+        body: JSON.stringify({ entries }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setBulkStatus({ type: 'error', msg: data.error || '업로드 실패' });
+        return;
+      }
+
+      const parts = [`${data.inserted}건 등록 완료`];
+      if (warnings.length) parts.push(`(건너뜀: ${warnings.length}건 — ${warnings.join(' / ')})`);
+      setBulkStatus({ type: 'ok', msg: parts.join(' ') });
+      loadEntries();
+    } catch (err) {
+      setBulkStatus({
+        type: 'error',
+        msg: '엑셀 파일을 읽는 중 오류가 발생했습니다: ' + (err.message || ''),
+      });
+    } finally {
+      setBulkSubmitting(false);
+      if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
     }
   };
 
@@ -433,6 +588,39 @@ export default function Admin() {
             <p className={`status-msg ${status.type}`}>{status.msg}</p>
           )}
         </form>
+
+        <div className="bulk-upload-box">
+          <p style={{ fontWeight: 700, marginBottom: 6 }}>엑셀로 일괄 등록</p>
+          <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 14 }}>
+            여러 건을 한 번에 등록하고 싶을 때 사용하세요. 템플릿을 받아 채운 뒤 업로드하면 됩니다.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="btn"
+              style={{ background: 'transparent', color: 'var(--text)', border: '1.5px solid var(--border)' }}
+              onClick={handleDownloadTemplate}
+            >
+              템플릿 다운로드
+            </button>
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              ref={bulkFileInputRef}
+              onChange={handleBulkUpload}
+              disabled={bulkSubmitting}
+            />
+            {bulkSubmitting && (
+              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>업로드 중…</span>
+            )}
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>
+            열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자
+          </p>
+          {bulkStatus && (
+            <p className={`status-msg ${bulkStatus.type}`}>{bulkStatus.msg}</p>
+          )}
+        </div>
 
         <div style={{ marginTop: 48 }}>
           <p style={{ fontWeight: 700, marginBottom: 12 }}>

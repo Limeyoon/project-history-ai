@@ -109,7 +109,13 @@ export default function Home() {
               type="button"
             >
               <span className="category-icon">
-                <img src={c.icon} alt={c.label} width="34" height="34" />
+                <img
+                  src={c.icon}
+                  alt={c.label}
+                  width="34"
+                  height="34"
+                  style={c.iconFilter ? { filter: c.iconFilter } : undefined}
+                />
               </span>
               <div className="category-title">{c.label}</div>
             </button>
