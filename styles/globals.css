@@ -109,12 +109,13 @@ button {
 .topbar-link-edit {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   background: var(--accent);
   color: #fff;
   border: 1px solid var(--accent);
   font-weight: 700;
-  padding: 9px 18px 9px 15px;
+  font-size: 14px;
+  padding: 11px 22px 11px 18px;
 }
 
 .topbar-link-edit:hover {
@@ -124,8 +125,7 @@ button {
 }
 
 .edit-icon {
-  font-size: 13px;
-  line-height: 1;
+  flex-shrink: 0;
 }
 
 /* Category grid */

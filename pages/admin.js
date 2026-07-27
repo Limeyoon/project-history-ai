@@ -214,18 +214,37 @@ export default function Admin() {
     return (
       <>
         <Head>
-          <title>관리자 로그인 · Project History AI</title>
+          <title>관리자 로그인 · History Archive</title>
         </Head>
         <div className="layout admin-panel">
           <div className="topbar">
             <div className="brand">
               <span className="brand-mark">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">
-                <circle cx="12" cy="7.2" r="1.9" />
-                <rect x="10.3" y="10.5" width="3.4" height="9" rx="1.7" />
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path
+                  d="M3 6.8c0-.66.54-1.2 1.2-1.2h4.7l1.3 1.4h8.6c.66 0 1.2.54 1.2 1.2v9.6c0 .66-.54 1.2-1.2 1.2H4.2c-.66 0-1.2-.54-1.2-1.2z"
+                  fill="#fff"
+                />
+                <circle
+                  cx="14.3"
+                  cy="14.3"
+                  r="3.1"
+                  fill="none"
+                  stroke="#2F6FED"
+                  strokeWidth="1.8"
+                />
+                <line
+                  x1="16.6"
+                  y1="16.6"
+                  x2="19"
+                  y2="19"
+                  stroke="#2F6FED"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
-              Project History AI
+              History Archive
             </div>
             <Link href="/" className="topbar-link">
               ← 아카이브로
@@ -262,18 +281,37 @@ export default function Admin() {
   return (
     <>
       <Head>
-        <title>기록 등록 · Project History AI</title>
+        <title>기록 등록 · History Archive</title>
       </Head>
       <div className="layout admin-panel">
         <div className="topbar">
           <div className="brand">
             <span className="brand-mark">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">
-                <circle cx="12" cy="7.2" r="1.9" />
-                <rect x="10.3" y="10.5" width="3.4" height="9" rx="1.7" />
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path
+                  d="M3 6.8c0-.66.54-1.2 1.2-1.2h4.7l1.3 1.4h8.6c.66 0 1.2.54 1.2 1.2v9.6c0 .66-.54 1.2-1.2 1.2H4.2c-.66 0-1.2-.54-1.2-1.2z"
+                  fill="#fff"
+                />
+                <circle
+                  cx="14.3"
+                  cy="14.3"
+                  r="3.1"
+                  fill="none"
+                  stroke="#2F6FED"
+                  strokeWidth="1.8"
+                />
+                <line
+                  x1="16.6"
+                  y1="16.6"
+                  x2="19"
+                  y2="19"
+                  stroke="#2F6FED"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
-            Project History AI
+            History Archive
           </div>
           <Link href="/" className="topbar-link">
             ← 아카이브로

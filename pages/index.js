@@ -60,22 +60,49 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Project History AI</title>
+        <title>History Archive</title>
       </Head>
       <div className="layout">
         <div className="topbar">
           <div className="brand">
             <span className="brand-mark">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">
-                <circle cx="12" cy="7.2" r="1.9" />
-                <rect x="10.3" y="10.5" width="3.4" height="9" rx="1.7" />
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path
+                  d="M3 6.8c0-.66.54-1.2 1.2-1.2h4.7l1.3 1.4h8.6c.66 0 1.2.54 1.2 1.2v9.6c0 .66-.54 1.2-1.2 1.2H4.2c-.66 0-1.2-.54-1.2-1.2z"
+                  fill="#fff"
+                />
+                <circle
+                  cx="14.3"
+                  cy="14.3"
+                  r="3.1"
+                  fill="none"
+                  stroke="#2F6FED"
+                  strokeWidth="1.8"
+                />
+                <line
+                  x1="16.6"
+                  y1="16.6"
+                  x2="19"
+                  y2="19"
+                  stroke="#2F6FED"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
-            Project History AI
+            History Archive
           </div>
           <Link href="/admin" className="topbar-link topbar-link-edit">
-            <span className="edit-icon" aria-hidden="true">✎</span>
-            Edit
+            <svg
+              className="edit-icon"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="#fff"
+            >
+              <path d="M4 15.5V20h4.5L20.8 7.7c.4-.4.4-1 0-1.4l-3.1-3.1c-.4-.4-1-.4-1.4 0L4 15.5zM17.7 4.4l2.9 2.9-1.9 1.9-2.9-2.9 1.9-1.9z" />
+            </svg>
+            히스토리 추가
           </Link>
         </div>
 
@@ -212,82 +239,59 @@ export default function Home() {
 }
 
 function CategoryIcon({ icon, color }) {
-  const common = {
-    width: 24,
-    height: 24,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: color,
-    strokeWidth: 1.6,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  };
+  const shadow = { filter: 'drop-shadow(0 3px 5px rgba(20,20,30,0.18))' };
 
   if (icon === 'design') {
+    // 팔레트 모양의 플랫 아이콘
     return (
-      <svg {...common}>
-        <rect x="4" y="4" width="16" height="16" rx="4" />
-        <rect
-          x="8.5"
-          y="8.5"
-          width="7"
-          height="7"
-          rx="2"
-          fill={`${color}26`}
-          stroke={color}
-          strokeWidth="1.4"
-        />
+      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
+        <ellipse cx="12" cy="12" rx="9.5" ry="8" fill={color} />
+        <circle cx="16.2" cy="14.3" r="2.6" fill="#fff" />
+        <circle cx="8.2" cy="8.8" r="1.4" fill="#fff" />
+        <circle cx="12.5" cy="6.8" r="1.4" fill="#fff" />
+        <circle cx="16.6" cy="8.8" r="1.4" fill="#fff" />
       </svg>
     );
   }
 
   if (icon === 'exception') {
+    // 핀(마커) 모양의 플랫 아이콘
     return (
-      <svg {...common}>
+      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
         <path
-          d="M12 3.5 L21 19.5 L3 19.5 Z"
-          fill={`${color}1f`}
-          strokeLinejoin="round"
+          d="M12 2.2c-4.42 0-8 3.53-8 7.88 0 5.9 8 11.7 8 11.7s8-5.8 8-11.7c0-4.35-3.58-7.88-8-7.88z"
+          fill={color}
         />
-        <line x1="12" y1="9.3" x2="12" y2="14" />
-        <circle cx="12" cy="16.8" r="0.7" fill={color} stroke="none" />
+        <circle cx="12" cy="10" r="3.1" fill="#fff" />
       </svg>
     );
   }
 
   if (icon === 'typography') {
+    // 볼드 T 글자 형태의 플랫 아이콘
     return (
-      <svg {...common}>
-        <rect
-          x="5.5"
-          y="5.5"
-          width="13"
-          height="3"
-          rx="1.5"
-          fill={`${color}26`}
-          stroke="none"
-        />
-        <line x1="12" y1="7" x2="12" y2="18.5" />
+      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
+        <rect x="3.5" y="4" width="17" height="4.4" rx="2.2" fill={color} />
+        <rect x="9.8" y="4" width="4.4" height="16" rx="2.2" fill={color} />
       </svg>
     );
   }
 
   if (icon === 'dev') {
+    // 코드 브래킷 형태의 플랫(면 채움) 아이콘
     return (
-      <svg {...common}>
-        <polyline points="9 6 3.5 12 9 18" />
-        <polyline points="15 6 20.5 12 15 18" />
-        <circle cx="12" cy="12" r="1.3" fill={`${color}55`} stroke="none" />
+      <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
+        <polygon points="9.5,4.5 3,12 9.5,19.5 11.6,17.3 6.9,12 11.6,6.7" fill={color} />
+        <polygon points="14.5,4.5 21,12 14.5,19.5 12.4,17.3 17.1,12 12.4,6.7" fill={color} />
       </svg>
     );
   }
 
-  // etc
+  // etc — 폴더 형태의 플랫 아이콘
   return (
-    <svg {...common} fill={color} stroke="none">
-      <circle cx="6" cy="12" r="1.7" />
-      <circle cx="12" cy="12" r="1.7" fillOpacity="0.55" />
-      <circle cx="18" cy="12" r="1.7" fillOpacity="0.3" />
+    <svg viewBox="0 0 24 24" width="30" height="30" style={shadow}>
+      <rect x="3.5" y="8.5" width="17" height="11.5" rx="2.4" fill={color} />
+      <rect x="3.5" y="5" width="8.5" height="4.4" rx="2.2" fill={color} />
     </svg>
   );
 }
