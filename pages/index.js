@@ -76,15 +76,6 @@ export default function Home() {
             History Archive
           </div>
           <Link href="/admin" className="topbar-link topbar-link-edit">
-            <svg
-              className="edit-icon"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#fff"
-            >
-              <path d="M4 15.5V20h4.5L20.8 7.7c.4-.4.4-1 0-1.4l-3.1-3.1c-.4-.4-1-.4-1.4 0L4 15.5zM17.7 4.4l2.9 2.9-1.9 1.9-2.9-2.9 1.9-1.9z" />
-            </svg>
             히스토리 추가
           </Link>
         </div>
