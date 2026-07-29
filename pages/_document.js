@@ -8,12 +8,12 @@ export default function Document() {
         <meta name="description" content="프로젝트 히스토리 아카이브" />
         <link
           rel="icon"
-          href="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/96/external-search-folder-tanah-basah-glyph-tanah-basah.png"
+          href="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
           type="image/png"
         />
         <link
           rel="apple-touch-icon"
-          href="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/96/external-search-folder-tanah-basah-glyph-tanah-basah.png"
+          href="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
         />
       </Head>
       <body>

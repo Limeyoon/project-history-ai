@@ -41,6 +41,7 @@ export default function Admin() {
   const bulkFileInputRef = useRef(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkStatus, setBulkStatus] = useState(null); // { type, msg }
+  const [bulkFileName, setBulkFileName] = useState('');
 
   const isEditing = Boolean(form.id);
 
@@ -275,6 +276,7 @@ export default function Admin() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setBulkFileName(file.name);
     setBulkStatus(null);
     setBulkSubmitting(true);
 
@@ -376,7 +378,7 @@ export default function Admin() {
             <div className="brand">
               <span className="brand-mark">
               <img
-                src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/96/external-search-folder-tanah-basah-glyph-tanah-basah.png"
+                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
                 alt=""
                 width="18"
                 height="18"
@@ -426,7 +428,7 @@ export default function Admin() {
           <div className="brand">
             <span className="brand-mark">
               <img
-                src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/96/external-search-folder-tanah-basah-glyph-tanah-basah.png"
+                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
                 alt=""
                 width="18"
                 height="18"
@@ -520,12 +522,25 @@ export default function Admin() {
           </div>
           <div className="field">
             <label>참고 이미지 (jpg, png · 5MB 이하)</label>
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-            />
+            <div className="file-field">
+              <span className="file-field-display">
+                {imageFile ? imageFile.name : '선택된 파일 없음'}
+              </span>
+              <button
+                type="button"
+                className="file-field-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                파일 선택
+              </button>
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+            </div>
             {imagePreview && (
               <div style={{ marginTop: 8 }}>
                 <img
@@ -603,13 +618,27 @@ export default function Admin() {
             >
               템플릿 다운로드
             </button>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              ref={bulkFileInputRef}
-              onChange={handleBulkUpload}
-              disabled={bulkSubmitting}
-            />
+            <div className="file-field" style={{ maxWidth: 320 }}>
+              <span className="file-field-display">
+                {bulkFileName || '선택된 파일 없음'}
+              </span>
+              <button
+                type="button"
+                className="file-field-btn"
+                onClick={() => bulkFileInputRef.current?.click()}
+                disabled={bulkSubmitting}
+              >
+                파일 선택
+              </button>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                ref={bulkFileInputRef}
+                onChange={handleBulkUpload}
+                disabled={bulkSubmitting}
+                style={{ display: 'none' }}
+              />
+            </div>
             {bulkSubmitting && (
               <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>업로드 중…</span>
             )}

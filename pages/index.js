@@ -48,6 +48,25 @@ export default function Home() {
 
   const hasActiveFilter = Boolean(activeCategory || submittedQuery.trim());
 
+  const tagGroups = useMemo(() => {
+    const map = {};
+    entries.forEach((e) => {
+      (e.tags || []).forEach((t) => {
+        if (!map[t]) map[t] = [];
+        map[t].push(e);
+      });
+    });
+    return Object.entries(map)
+      .filter(([, list]) => list.length >= 2)
+      .map(([tag, list]) => ({
+        tag,
+        items: [...list].sort(
+          (a, b) => new Date(b.entry_date) - new Date(a.entry_date)
+        ),
+      }))
+      .sort((a, b) => b.items.length - a.items.length);
+  }, [entries]);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSubmittedQuery(query);
@@ -67,7 +86,7 @@ export default function Home() {
           <div className="brand">
             <span className="brand-mark">
               <img
-                src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/96/external-search-folder-tanah-basah-glyph-tanah-basah.png"
+                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
                 alt=""
                 width="18"
                 height="18"
@@ -75,7 +94,10 @@ export default function Home() {
             </span>
             History Archive
           </div>
-          <Link href="/admin" className="topbar-link topbar-link-edit">
+          <Link
+            href="/admin"
+            className="topbar-link topbar-link-edit"
+          >
             히스토리 추가
           </Link>
         </div>
@@ -95,7 +117,19 @@ export default function Home() {
               onChange={(e) => setQuery(e.target.value)}
             />
             <button className="search-submit" type="submit" aria-label="검색">
-              →
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.2" y2="16.2" />
+              </svg>
             </button>
           </form>
         </div>
@@ -121,6 +155,38 @@ export default function Home() {
             </button>
           ))}
         </div>
+
+        {!hasActiveFilter && tagGroups.length > 0 && (
+          <div className="related-history-section">
+            <h3 className="related-history-title">관련 히스토리 묶어보기</h3>
+            <p className="related-history-sub">
+              같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
+            </p>
+            {tagGroups.map((group) => (
+              <div className="related-history-card" key={group.tag}>
+                <div className="related-history-card-head">#{group.tag}</div>
+                {group.items.map((entry, idx) => (
+                  <div className="related-history-item" key={entry.id}>
+                    <div className="related-history-item-top">
+                      <span className="related-history-item-title">
+                        {entry.title}
+                      </span>
+                      {idx === 0 && (
+                        <span className="latest-badge">최신</span>
+                      )}
+                    </div>
+                    <div className="related-history-item-date">
+                      {formatDate(entry.entry_date)}
+                    </div>
+                    <p className="related-history-item-desc">
+                      {entry.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         {loadError && <div className="notice">{loadError}</div>}
 

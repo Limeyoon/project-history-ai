@@ -6,8 +6,8 @@
   --border: #e7e9f1;
   --text: #14161c;
   --text-dim: #6b7280;
-  --accent: #2f6fed;
-  --accent-soft: #eaf1ff;
+  --accent: #2563eb;
+  --accent-soft: #e9f0fd;
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 8px;
@@ -113,18 +113,20 @@ button {
 .topbar-link-edit {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 8px;
   background: var(--accent);
   color: #fff;
   border: 1px solid var(--accent);
   font-weight: 700;
   font-size: 14px;
-  padding: 11px 22px 11px 18px;
+  padding: 11px 22px;
 }
 
 .topbar-link-edit:hover {
-  background: #2660d1;
-  border-color: #2660d1;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
   color: #fff;
 }
 
@@ -307,19 +309,19 @@ button {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: var(--text);
-  color: #fff;
+  background: transparent;
+  color: #6b7280;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .search-submit:hover {
-  background: #303339;
+  background: var(--bg);
+  color: #4b5563;
 }
 
 .search-meta {
@@ -352,6 +354,99 @@ button {
   flex-direction: column;
   gap: 14px;
   margin-bottom: 8px;
+}
+
+.related-history-section {
+  margin-bottom: 48px;
+}
+
+.related-history-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.related-history-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 0 0 16px;
+}
+
+.related-history-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.related-history-card-head {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.related-history-item {
+  position: relative;
+  padding: 0 0 16px 18px;
+  border-left: 2px solid var(--border);
+  margin-left: 4px;
+}
+
+.related-history-item:last-child {
+  padding-bottom: 0;
+}
+
+.related-history-item::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.related-history-item:first-child::before {
+  background: var(--accent);
+}
+
+.related-history-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.related-history-item-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.latest-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.related-history-item-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 3px 0 6px;
+}
+
+.related-history-item-desc {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0;
 }
 
 .entry-card {
@@ -548,17 +643,17 @@ button {
 .btn {
   font-size: 13px;
   font-weight: 700;
-  background: var(--text);
+  background: var(--accent);
   color: #fff;
   border: none;
   padding: 12px 20px;
   border-radius: 10px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, background 0.15s ease;
 }
 
 .btn:hover {
-  opacity: 0.88;
+  background: #1d4ed8;
 }
 
 .btn:disabled {
@@ -593,6 +688,49 @@ button {
   background: var(--card);
   border: 1.5px dashed var(--border);
   border-radius: 14px;
+}
+
+.file-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-field-display {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.file-field-btn {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.file-field-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.file-field-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .admin-list-item {
