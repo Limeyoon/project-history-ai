@@ -10,6 +10,7 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(null);
+  const [relatedOpen, setRelatedOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,33 +159,59 @@ export default function Home() {
 
         {!hasActiveFilter && tagGroups.length > 0 && (
           <div className="related-history-section">
-            <h3 className="related-history-title">관련 히스토리 묶어보기</h3>
-            <p className="related-history-sub">
-              같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
-            </p>
-            {tagGroups.map((group) => (
-              <div className="related-history-card" key={group.tag}>
-                <div className="related-history-card-head">#{group.tag}</div>
-                {group.items.map((entry, idx) => (
-                  <div className="related-history-item" key={entry.id}>
-                    <div className="related-history-item-top">
-                      <span className="related-history-item-title">
-                        {entry.title}
-                      </span>
-                      {idx === 0 && (
-                        <span className="latest-badge">최신</span>
-                      )}
-                    </div>
-                    <div className="related-history-item-date">
-                      {formatDate(entry.entry_date)}
-                    </div>
-                    <p className="related-history-item-desc">
-                      {entry.content}
-                    </p>
+            <button
+              type="button"
+              className="related-history-toggle"
+              onClick={() => setRelatedOpen((v) => !v)}
+            >
+              <span>관련 히스토리 묶어보기</span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{
+                  transform: relatedOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.15s ease',
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {relatedOpen && (
+              <div className="related-history-panel">
+                <p className="related-history-sub">
+                  같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
+                </p>
+                {tagGroups.map((group) => (
+                  <div className="related-history-card" key={group.tag}>
+                    <div className="related-history-card-head">#{group.tag}</div>
+                    {group.items.map((entry, idx) => (
+                      <div className="related-history-item" key={entry.id}>
+                        <div className="related-history-item-top">
+                          <span className="related-history-item-title">
+                            {entry.title}
+                          </span>
+                          {idx === 0 && (
+                            <span className="latest-badge">최신</span>
+                          )}
+                        </div>
+                        <div className="related-history-item-date">
+                          {formatDate(entry.entry_date)}
+                        </div>
+                        <p className="related-history-item-desc">
+                          {entry.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 
