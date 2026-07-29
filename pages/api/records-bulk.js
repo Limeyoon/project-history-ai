@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       content: e.content,
       category: e.category || '기타',
       tags: Array.isArray(e.tags) ? e.tags : [],
-      image_url: null,
+      image_url: e.image_url || null,
       reference_url: e.reference_url || null,
       created_by: e.author_name || null,
       updated_by: e.author_name || null,

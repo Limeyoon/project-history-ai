@@ -744,6 +744,61 @@ button {
   color: #16a34a;
 }
 
+.site-gate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+
+.site-gate-box {
+  width: 100%;
+  max-width: 360px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.08);
+}
+
+.site-gate-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.site-gate-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 0 0 18px;
+}
+
+.site-gate-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.site-gate-error {
+  color: #c94c4c;
+  font-size: 12.5px;
+  margin-top: 10px;
+}
 .bulk-upload-box {
   margin-top: 40px;
   padding: 20px;

@@ -42,6 +42,9 @@ export default function Admin() {
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkStatus, setBulkStatus] = useState(null); // { type, msg }
   const [bulkFileName, setBulkFileName] = useState('');
+  const [bulkExcelFile, setBulkExcelFile] = useState(null);
+  const [bulkImageFiles, setBulkImageFiles] = useState([]);
+  const bulkImageInputRef = useRef(null);
 
   const isEditing = Boolean(form.id);
 
@@ -215,7 +218,7 @@ export default function Admin() {
     }
   };
 
-  const BULK_HEADERS = ['날짜', '카테고리', '제목', '내용', '태그', '참고URL', '작성자'];
+  const BULK_HEADERS = ['날짜', '카테고리', '제목', '내용', '태그', '참고URL', '작성자', '이미지파일명'];
 
   const handleDownloadTemplate = () => {
     const sample = [
@@ -228,6 +231,7 @@ export default function Admin() {
         'Button, 코너라운드',
         '',
         authorName || '홍길동',
+        'button-radius.jpg',
       ],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sample);
@@ -239,6 +243,7 @@ export default function Admin() {
       { wch: 20 },
       { wch: 24 },
       { wch: 10 },
+      { wch: 22 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '히스토리');
@@ -272,16 +277,45 @@ export default function Admin() {
     return found ? found.id : null;
   };
 
-  const handleBulkUpload = async (e) => {
+  const handleBulkExcelSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    setBulkExcelFile(file);
     setBulkFileName(file.name);
+    setBulkStatus(null);
+  };
+
+  const handleBulkImagesSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setBulkImageFiles(files);
+  };
+
+  const uploadBulkImage = async (file) => {
+    const base64 = await fileToBase64(file);
+    const res = await fetch('/api/upload-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': password,
+      },
+      body: JSON.stringify({ fileBase64: base64, contentType: file.type }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '이미지 업로드 실패');
+    return data.url;
+  };
+
+  const handleBulkStart = async () => {
+    if (!bulkExcelFile) {
+      setBulkStatus({ type: 'error', msg: '먼저 엑셀 파일을 선택해주세요.' });
+      return;
+    }
+
     setBulkStatus(null);
     setBulkSubmitting(true);
 
     try {
-      const buffer = await file.arrayBuffer();
+      const buffer = await bulkExcelFile.arrayBuffer();
       const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
@@ -326,6 +360,7 @@ export default function Admin() {
           tags,
           reference_url: String(row['참고URL'] || '').trim() || null,
           author_name: String(row['작성자'] || authorName || '').trim() || null,
+          image_filename: String(row['이미지파일명'] || '').trim(),
         });
       });
 
@@ -335,6 +370,32 @@ export default function Admin() {
           msg: '등록 가능한 행이 없습니다. ' + warnings.join(' / '),
         });
         return;
+      }
+
+      // 이미지 파일명 매칭 + 업로드 (같은 파일은 한 번만 업로드하도록 캐싱)
+      const imageMap = {};
+      bulkImageFiles.forEach((f) => {
+        imageMap[f.name] = f;
+      });
+      const uploadedCache = {};
+      let imageOkCount = 0;
+
+      for (const entry of entries) {
+        const fname = entry.image_filename;
+        if (fname && imageMap[fname]) {
+          try {
+            if (!uploadedCache[fname]) {
+              uploadedCache[fname] = await uploadBulkImage(imageMap[fname]);
+            }
+            entry.image_url = uploadedCache[fname];
+            imageOkCount += 1;
+          } catch (err) {
+            warnings.push(`"${entry.title}": 이미지 업로드 실패 (${err.message})`);
+          }
+        } else if (fname) {
+          warnings.push(`"${entry.title}": 이미지 파일 "${fname}"을 찾지 못함`);
+        }
+        delete entry.image_filename;
       }
 
       const res = await fetch('/api/records-bulk', {
@@ -352,18 +413,25 @@ export default function Admin() {
         return;
       }
 
-      const parts = [`${data.inserted}건 등록 완료`];
-      if (warnings.length) parts.push(`(건너뜀: ${warnings.length}건 — ${warnings.join(' / ')})`);
+      const parts = [
+        `${data.inserted}건 등록 완료`,
+        `(이미지 첨부 ${imageOkCount}건)`,
+      ];
+      if (warnings.length)
+        parts.push(`건너뜀/경고: ${warnings.length}건 — ${warnings.join(' / ')}`);
       setBulkStatus({ type: 'ok', msg: parts.join(' ') });
       loadEntries();
+      setBulkExcelFile(null);
+      setBulkImageFiles([]);
     } catch (err) {
       setBulkStatus({
         type: 'error',
-        msg: '엑셀 파일을 읽는 중 오류가 발생했습니다: ' + (err.message || ''),
+        msg: '처리 중 오류가 발생했습니다: ' + (err.message || ''),
       });
     } finally {
       setBulkSubmitting(false);
       if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+      if (bulkImageInputRef.current) bulkImageInputRef.current.value = '';
     }
   };
 
@@ -607,7 +675,7 @@ export default function Admin() {
         <div className="bulk-upload-box">
           <p style={{ fontWeight: 700, marginBottom: 6 }}>엑셀로 일괄 등록</p>
           <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 14 }}>
-            여러 건을 한 번에 등록하고 싶을 때 사용하세요. 템플릿을 받아 채운 뒤 업로드하면 됩니다.
+            여러 건을 한 번에 등록하고 싶을 때 사용하세요. 템플릿을 받아 채운 뒤, 엑셀과 근거 이미지 파일들을 함께 선택하고 등록을 시작하면 됩니다.
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <button
@@ -624,7 +692,7 @@ export default function Admin() {
             </button>
             <div className="file-field" style={{ maxWidth: 320 }}>
               <span className="file-field-display">
-                {bulkFileName || '선택된 파일 없음'}
+                {bulkFileName || '엑셀 파일 없음'}
               </span>
               <button
                 type="button"
@@ -632,23 +700,54 @@ export default function Admin() {
                 onClick={() => bulkFileInputRef.current?.click()}
                 disabled={bulkSubmitting}
               >
-                파일 선택
+                엑셀 선택
               </button>
               <input
                 type="file"
                 accept=".xlsx,.xls,.csv"
                 ref={bulkFileInputRef}
-                onChange={handleBulkUpload}
+                onChange={handleBulkExcelSelect}
                 disabled={bulkSubmitting}
                 style={{ display: 'none' }}
               />
             </div>
-            {bulkSubmitting && (
-              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>업로드 중…</span>
-            )}
+            <div className="file-field" style={{ maxWidth: 320 }}>
+              <span className="file-field-display">
+                {bulkImageFiles.length > 0
+                  ? `이미지 ${bulkImageFiles.length}개 선택됨`
+                  : '근거 이미지 없음 (선택)'}
+              </span>
+              <button
+                type="button"
+                className="file-field-btn"
+                onClick={() => bulkImageInputRef.current?.click()}
+                disabled={bulkSubmitting}
+              >
+                이미지 선택
+              </button>
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                multiple
+                ref={bulkImageInputRef}
+                onChange={handleBulkImagesSelect}
+                disabled={bulkSubmitting}
+                style={{ display: 'none' }}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn-black"
+              onClick={handleBulkStart}
+              disabled={bulkSubmitting || !bulkExcelFile}
+            >
+              {bulkSubmitting ? '등록 중…' : '일괄 등록 시작'}
+            </button>
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>
-            열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자
+            열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자 · 이미지파일명
+            <br />
+            이미지파일명 열에 적은 파일명과 정확히 같은 이름의 이미지를 "이미지 선택"에서 함께 골라주세요(장당 5MB 이하, jpg/png).
           </p>
           {bulkStatus && (
             <p className={`status-msg ${bulkStatus.type}`}>{bulkStatus.msg}</p>

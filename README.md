@@ -68,6 +68,7 @@ git push -u origin main
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `ADMIN_PASSWORD`
+   - `SITE_PASSWORD` (사이트 전체 입장 시 필요한 비밀번호)
 4. **Deploy** 클릭 → 몇 분 후 `https://프로젝트이름.vercel.app` 형태의 공개 URL이 생성됩니다.
 
 이 URL을 아는 누구나 아카이브를 보고 검색할 수 있습니다.
