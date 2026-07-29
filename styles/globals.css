@@ -122,6 +122,7 @@ button {
 .back-link:hover {
   color: #1d4ed8;
 }
+.topbar-link-edit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
