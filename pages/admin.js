@@ -30,6 +30,11 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [entries, setEntries] = useState([]);
+  const [adminTab, setAdminTab] = useState('전체');
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminElementFilter, setAdminElementFilter] = useState('');
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [authorName, setAuthorName] = useState('');
   const [status, setStatus] = useState(null); // { type: 'ok'|'error', msg }
@@ -215,6 +220,94 @@ export default function Admin() {
     } else {
       if (form.id === id) resetForm();
       loadEntries();
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllVisible = (visibleIds) => {
+    const allSelected = visibleIds.every((id) => selectedIds.includes(id));
+    setSelectedIds((prev) =>
+      allSelected
+        ? prev.filter((id) => !visibleIds.includes(id))
+        : Array.from(new Set([...prev, ...visibleIds]))
+    );
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    if (
+      !confirm(
+        `선택한 ${selectedIds.length}건을 삭제할까요? 이 작업은 되돌릴 수 없습니다.`
+      )
+    )
+      return;
+    setBulkDeleting(true);
+    try {
+      const res = await fetch('/api/records-bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password,
+        },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || '삭제 실패');
+      } else {
+        alert(`${data.deleted}건 삭제 완료`);
+        setSelectedIds([]);
+        loadEntries();
+      }
+    } catch (err) {
+      alert('삭제 중 오류가 발생했습니다.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (entries.length === 0) return;
+    if (
+      !confirm(
+        `등록된 전체 ${entries.length}건을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.`
+      )
+    )
+      return;
+    const typed = window.prompt(
+      '정말 전체 삭제하시려면 아래 입력창에 "전체삭제"를 입력해주세요.'
+    );
+    if (typed !== '전체삭제') {
+      alert('입력값이 일치하지 않아 취소되었습니다.');
+      return;
+    }
+    setBulkDeleting(true);
+    try {
+      const res = await fetch('/api/records-bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password,
+        },
+        body: JSON.stringify({ all: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || '삭제 실패');
+      } else {
+        alert(`전체 ${data.deleted}건 삭제 완료`);
+        setSelectedIds([]);
+        loadEntries();
+      }
+    } catch (err) {
+      alert('삭제 중 오류가 발생했습니다.');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -434,6 +527,32 @@ export default function Admin() {
       if (bulkImageInputRef.current) bulkImageInputRef.current.value = '';
     }
   };
+
+  const ADMIN_TABS = ['전체', ...CATEGORIES.map((c) => c.label)];
+
+  const elementOptions = Array.from(
+    new Set(
+      entries
+        .map((e) => (e.tags || [])[0])
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const filteredEntries = entries.filter((e) => {
+    if (adminTab !== '전체') {
+      const meta = CATEGORIES.find((c) => c.id === e.category);
+      if (!meta || meta.label !== adminTab) return false;
+    }
+    if (adminElementFilter && (e.tags || [])[0] !== adminElementFilter) {
+      return false;
+    }
+    if (adminSearch.trim()) {
+      const q = adminSearch.trim().toLowerCase();
+      const hay = `${e.title} ${e.content} ${(e.tags || []).join(' ')}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   if (!unlocked) {
     return (
@@ -677,20 +796,9 @@ export default function Admin() {
           <p style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 14 }}>
             여러 건을 한 번에 등록하고 싶을 때 사용하세요. 템플릿을 받아 채운 뒤, 엑셀과 근거 이미지 파일들을 함께 선택하고 등록을 시작하면 됩니다.
           </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button
-              type="button"
-              className="btn-template"
-              onClick={handleDownloadTemplate}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v12" />
-                <polyline points="7 10 12 15 17 10" />
-                <path d="M5 19h14" />
-              </svg>
-              템플릿 다운로드
-            </button>
-            <div className="file-field" style={{ maxWidth: 320 }}>
+
+          <div className="bulk-row">
+            <div className="file-field" style={{ flex: 1, maxWidth: 420 }}>
               <span className="file-field-display">
                 {bulkFileName || '엑셀 파일 없음'}
               </span>
@@ -711,7 +819,22 @@ export default function Admin() {
                 style={{ display: 'none' }}
               />
             </div>
-            <div className="file-field" style={{ maxWidth: 320 }}>
+            <button
+              type="button"
+              className="btn-template"
+              onClick={handleDownloadTemplate}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3v12" />
+                <polyline points="7 10 12 15 17 10" />
+                <path d="M5 19h14" />
+              </svg>
+              템플릿 다운로드
+            </button>
+          </div>
+
+          <div className="bulk-row" style={{ marginTop: 10 }}>
+            <div className="file-field" style={{ flex: 1, maxWidth: 420 }}>
               <span className="file-field-display">
                 {bulkImageFiles.length > 0
                   ? `이미지 ${bulkImageFiles.length}개 선택됨`
@@ -735,6 +858,9 @@ export default function Admin() {
                 style={{ display: 'none' }}
               />
             </div>
+          </div>
+
+          <div className="bulk-row" style={{ marginTop: 14 }}>
             <button
               type="button"
               className="btn btn-black"
@@ -744,39 +870,147 @@ export default function Admin() {
               {bulkSubmitting ? '등록 중…' : '일괄 등록 시작'}
             </button>
           </div>
+
           <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>
             열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자 · 이미지파일명
             <br />
             이미지파일명 열에 적은 파일명과 정확히 같은 이름의 이미지를 "이미지 선택"에서 함께 골라주세요(장당 5MB 이하, jpg/png).
           </p>
-          {bulkStatus && (
-            <p className={`status-msg ${bulkStatus.type}`}>{bulkStatus.msg}</p>
+          {bulkStatus && bulkStatus.type === 'error' && (
+            <p className="status-msg error">{bulkStatus.msg}</p>
           )}
         </div>
 
+        {bulkSubmitting && (
+          <div className="bulk-overlay">
+            <div className="bulk-overlay-box">
+              <div className="bulk-spinner" />
+              <p>등록 중입니다… 잠시만 기다려주세요.</p>
+            </div>
+          </div>
+        )}
+
+        {bulkStatus && bulkStatus.type === 'ok' && (
+          <div className="bulk-overlay">
+            <div className="bulk-overlay-box">
+              <p style={{ fontWeight: 700, marginBottom: 8 }}>등록 완료</p>
+              <p style={{ fontSize: 13, color: 'var(--text-dim)' }}>{bulkStatus.msg}</p>
+              <button
+                type="button"
+                className="btn"
+                style={{ marginTop: 16 }}
+                onClick={() => setBulkStatus(null)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{ marginTop: 48 }}>
           <p style={{ fontWeight: 700, marginBottom: 12 }}>
-            등록된 기록 ({entries.length})
+            등록된 기록 ({filteredEntries.length} / {entries.length})
           </p>
-          {entries.map((e) => (
+
+          <div className="admin-tabs">
+            {ADMIN_TABS.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                className={`admin-tab ${adminTab === tab ? 'active' : ''}`}
+                onClick={() => setAdminTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '12px 0 18px' }}>
+            <input
+              type="text"
+              className="admin-search-input"
+              placeholder="제목·내용·태그 검색"
+              value={adminSearch}
+              onChange={(e) => setAdminSearch(e.target.value)}
+            />
+            <select
+              className="admin-element-select"
+              value={adminElementFilter}
+              onChange={(e) => setAdminElementFilter(e.target.value)}
+            >
+              <option value="">엘리먼트 전체 ({elementOptions.length}개)</option>
+              {elementOptions.map((el) => (
+                <option key={el} value={el}>
+                  {el}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '12px 0 18px', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+              <input
+                type="checkbox"
+                checked={
+                  filteredEntries.length > 0 &&
+                  filteredEntries.every((e) => selectedIds.includes(e.id))
+                }
+                onChange={() =>
+                  toggleSelectAllVisible(filteredEntries.map((e) => e.id))
+                }
+              />
+              전체 선택
+            </label>
+            <button
+              type="button"
+              className="btn-danger"
+              style={{ borderRadius: 999, padding: '7px 16px', fontSize: 13 }}
+              onClick={handleDeleteSelected}
+              disabled={selectedIds.length === 0 || bulkDeleting}
+            >
+              선택 삭제 ({selectedIds.length})
+            </button>
+            <button
+              type="button"
+              className="btn-danger"
+              style={{ borderRadius: 999, padding: '7px 16px', fontSize: 13 }}
+              onClick={handleDeleteAll}
+              disabled={entries.length === 0 || bulkDeleting}
+            >
+              전체 삭제 ({entries.length})
+            </button>
+            {bulkDeleting && (
+              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>삭제 중…</span>
+            )}
+          </div>
+
+          {filteredEntries.map((e) => (
             <div className="admin-list-item" key={e.id}>
-              <div>
-                <div>{e.title}</div>
-                <div className="meta">
-                  {e.entry_date} · {e.category}
-                  {e.image_url ? ' · 이미지 있음' : ''}
-                  {e.reference_url ? ' · URL 있음' : ''}
-                </div>
-                <div className="meta">
-                  {[
-                    e.created_by ? `등록: ${e.created_by}` : null,
-                    e.updated_by && e.updated_by !== e.created_by
-                      ? `최근 수정: ${e.updated_by}`
-                      : null,
-                    e.updated_at ? `최종 수정일: ${formatDate(e.updated_at)}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <input
+                  type="checkbox"
+                  style={{ marginTop: 4 }}
+                  checked={selectedIds.includes(e.id)}
+                  onChange={() => toggleSelectOne(e.id)}
+                />
+                <div>
+                  <div>{e.title}</div>
+                  <div className="meta">
+                    {e.entry_date} · {e.category}
+                    {e.image_url ? ' · 이미지 있음' : ''}
+                    {e.reference_url ? ' · URL 있음' : ''}
+                  </div>
+                  <div className="meta">
+                    {[
+                      e.created_by ? `등록: ${e.created_by}` : null,
+                      e.updated_by && e.updated_by !== e.created_by
+                        ? `최근 수정: ${e.updated_by}`
+                        : null,
+                      e.updated_at ? `최종 수정일: ${formatDate(e.updated_at)}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>

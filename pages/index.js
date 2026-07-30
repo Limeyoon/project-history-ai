@@ -69,6 +69,8 @@ export default function Home() {
     }
   };
 
+  const [elementFilter, setElementFilter] = useState('');
+
   const tagGroups = useMemo(() => {
     const map = {};
     entries.forEach((e) => {
@@ -78,7 +80,6 @@ export default function Home() {
       });
     });
     return Object.entries(map)
-      .filter(([, list]) => list.length >= 2)
       .map(([tag, list]) => ({
         tag,
         items: [...list].sort(
@@ -87,6 +88,10 @@ export default function Home() {
       }))
       .sort((a, b) => b.items.length - a.items.length);
   }, [entries]);
+
+  const displayedGroups = elementFilter
+    ? tagGroups.filter((g) => g.tag === elementFilter)
+    : tagGroups.filter((g) => g.items.length >= 2);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -207,7 +212,21 @@ export default function Home() {
                 <p className="related-history-sub">
                   같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
                 </p>
-                {tagGroups.map((group) => (
+                <select
+                  className="element-select"
+                  value={elementFilter}
+                  onChange={(e) => setElementFilter(e.target.value)}
+                >
+                  <option value="">
+                    전체 보기 ({tagGroups.filter((g) => g.items.length >= 2).length}개 그룹)
+                  </option>
+                  {tagGroups.map((g) => (
+                    <option key={g.tag} value={g.tag}>
+                      {g.tag} ({g.items.length}건)
+                    </option>
+                  ))}
+                </select>
+                {displayedGroups.map((group) => (
                   <div className="related-history-card" key={group.tag}>
                     <div className="related-history-card-head">#{group.tag}</div>
                     {group.items.map((entry, idx) => (
