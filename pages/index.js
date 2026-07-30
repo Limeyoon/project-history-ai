@@ -10,7 +10,7 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(null);
-  const [relatedOpen, setRelatedOpen] = useState(false);
+  const [relatedOpen, setRelatedOpen] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,6 +48,26 @@ export default function Home() {
   }, [entries, submittedQuery, activeCategory]);
 
   const hasActiveFilter = Boolean(activeCategory || submittedQuery.trim());
+
+  const handleDeleteEntry = async (id) => {
+    if (!confirm('이 기록을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
+    const pw = window.prompt('관리자 비밀번호를 입력해주세요.');
+    if (!pw) return;
+    try {
+      const res = await fetch(`/api/records?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-password': pw },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || '삭제에 실패했습니다. 비밀번호를 확인해주세요.');
+        return;
+      }
+      setEntries((prev) => prev.filter((e) => e.id !== id));
+    } catch (err) {
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
 
   const tagGroups = useMemo(() => {
     const map = {};
@@ -206,6 +226,15 @@ export default function Home() {
                         <p className="related-history-item-desc">
                           {entry.content}
                         </p>
+                        {entry.tags && entry.tags.length > 0 && (
+                          <div className="tag-row">
+                            {entry.tags.map((t) => (
+                              <span className="tag" key={t}>
+                                #{t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -240,12 +269,21 @@ export default function Home() {
                         {formatDate(entry.entry_date)}
                       </span>
                     </div>
-                    <Link
-                      href={`/admin?edit=${entry.id}`}
-                      className="entry-edit-link"
-                    >
-                      ✎ 수정하기
-                    </Link>
+                    <div className="entry-actions">
+                      <Link
+                        href={`/admin?edit=${entry.id}`}
+                        className="entry-edit-link"
+                      >
+                        ✎ 수정하기
+                      </Link>
+                      <button
+                        type="button"
+                        className="entry-delete-link"
+                        onClick={() => handleDeleteEntry(entry.id)}
+                      >
+                        삭제하기
+                      </button>
+                    </div>
                   </div>
                   <h2 className="entry-title">{entry.title}</h2>
                   {entry.image_url && (
