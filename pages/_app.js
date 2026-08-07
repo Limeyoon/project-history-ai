@@ -51,10 +51,10 @@ function SiteGate({ children }) {
           <div className="site-gate-brand">
             <span className="brand-mark">
               <img
-                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
+                src="/icons/logo-white.png"
                 alt=""
-                width="18"
-                height="18"
+                width="19"
+                height="19"
               />
             </span>
             History Archive
