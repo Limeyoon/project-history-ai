@@ -10,6 +10,7 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(null);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,73 +188,6 @@ export default function Home() {
           ))}
         </div>
 
-        {tagGroups.length > 0 && (
-          <div className="related-history-section">
-            <div className="related-history-heading">
-              관련 히스토리 묶어보기
-              {activeCategory ? ` · ${activeCategory}` : ''}
-            </div>
-            <div className="related-history-panel">
-              <p className="related-history-sub">
-                같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
-              </p>
-              <select
-                className="element-select"
-                value={elementFilter}
-                onChange={(e) => setElementFilter(e.target.value)}
-              >
-                <option value="">
-                  전체 보기 ({tagGroups.filter((g) => g.items.length >= 2).length}개 그룹)
-                </option>
-                {tagGroups.map((g) => (
-                  <option key={g.tag} value={g.tag}>
-                    {g.tag} ({g.items.length}건)
-                  </option>
-                ))}
-              </select>
-              {displayedGroups.map((group) => (
-                <div className="related-history-card" key={group.tag}>
-                  <div className="related-history-card-head">#{group.tag}</div>
-                  {group.items.map((entry, idx) => (
-                    <div className="related-history-item" key={entry.id}>
-                      <div className="related-history-item-top">
-                        <span className="related-history-item-title">
-                          {entry.title}
-                        </span>
-                        {idx === 0 && (
-                          <span className="latest-badge">최신</span>
-                        )}
-                      </div>
-                      <div className="related-history-item-date">
-                          {formatDate(entry.entry_date)}
-                        </div>
-                        {entry.image_url && (
-                          <ImageCarousel
-                            urls={entry.image_url.split(',')}
-                            alt={entry.title}
-                            className="related-history-item-image"
-                          />
-                        )}
-                        <p className="related-history-item-desc">
-                          {entry.content}
-                        </p>
-                        {entry.tags && entry.tags.length > 0 && (
-                          <div className="tag-row">
-                            {entry.tags.map((t) => (
-                              <span className="tag" key={t}>
-                                #{t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-          </div>
-        )}
-
         {loadError && <div className="notice">{loadError}</div>}
 
         {hasActiveFilter && (
@@ -301,6 +235,7 @@ export default function Home() {
                       urls={entry.image_url.split(',')}
                       alt={entry.title}
                       className="entry-image"
+                      onOpen={setLightboxUrl}
                     />
                   )}
                   <p className="entry-content">{entry.content}</p>
@@ -355,6 +290,20 @@ export default function Home() {
           </p>
         )}
       </div>
+
+      {lightboxUrl && (
+        <div className="lightbox" onClick={() => setLightboxUrl(null)}>
+          <button
+            type="button"
+            className="lightbox-close"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="닫기"
+          >
+            ✕
+          </button>
+          <img src={lightboxUrl} alt="" className="lightbox-img" />
+        </div>
+      )}
     </>
   );
 }
@@ -367,27 +316,40 @@ function formatDate(dateStr) {
   return `${yy}.${mm}.${dd}`;
 }
 
-function ImageCarousel({ urls, alt, className }) {
+function ImageCarousel({ urls, alt, className, onOpen }) {
   const list = (urls || []).map((u) => u.trim()).filter(Boolean);
   const [idx, setIdx] = useState(0);
 
   if (list.length === 0) return null;
 
-  if (list.length === 1) {
-    return <img src={list[0]} alt={alt} className={className} />;
-  }
-
-  const go = (delta) => {
+  const go = (e, delta) => {
+    e.stopPropagation();
     setIdx((i) => (i + delta + list.length) % list.length);
   };
 
+  if (list.length === 1) {
+    return (
+      <img
+        src={list[0]}
+        alt={alt}
+        className={className}
+        onClick={() => onOpen && onOpen(list[0])}
+      />
+    );
+  }
+
   return (
     <div className="carousel">
-      <img src={list[idx]} alt={alt} className={className} />
+      <img
+        src={list[idx]}
+        alt={alt}
+        className={className}
+        onClick={() => onOpen && onOpen(list[idx])}
+      />
       <button
         type="button"
         className="carousel-nav prev"
-        onClick={() => go(-1)}
+        onClick={(e) => go(e, -1)}
         aria-label="이전 이미지"
       >
         ‹
@@ -395,7 +357,7 @@ function ImageCarousel({ urls, alt, className }) {
       <button
         type="button"
         className="carousel-nav next"
-        onClick={() => go(1)}
+        onClick={(e) => go(e, 1)}
         aria-label="다음 이미지"
       >
         ›
@@ -405,7 +367,10 @@ function ImageCarousel({ urls, alt, className }) {
           <span
             key={i}
             className={`carousel-dot ${i === idx ? 'active' : ''}`}
-            onClick={() => setIdx(i)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIdx(i);
+            }}
           />
         ))}
       </div>
