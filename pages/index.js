@@ -10,7 +10,6 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(null);
-  const [relatedOpen, setRelatedOpen] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,12 +72,14 @@ export default function Home() {
 
   const tagGroups = useMemo(() => {
     const map = {};
-    entries.forEach((e) => {
-      (e.tags || []).forEach((t) => {
-        if (!map[t]) map[t] = [];
-        map[t].push(e);
+    entries
+      .filter((e) => !activeCategory || e.category === activeCategory)
+      .forEach((e) => {
+        (e.tags || []).forEach((t) => {
+          if (!map[t]) map[t] = [];
+          map[t].push(e);
+        });
       });
-    });
     return Object.entries(map)
       .map(([tag, list]) => ({
         tag,
@@ -87,7 +88,7 @@ export default function Home() {
         ),
       }))
       .sort((a, b) => b.items.length - a.items.length);
-  }, [entries]);
+  }, [entries, activeCategory]);
 
   const displayedGroups = elementFilter
     ? tagGroups.filter((g) => g.tag === elementFilter)
@@ -100,6 +101,7 @@ export default function Home() {
 
   const toggleCategory = (id) => {
     setActiveCategory((prev) => (prev === id ? null : id));
+    setElementFilter('');
   };
 
   return (
@@ -140,7 +142,10 @@ export default function Home() {
               type="text"
               placeholder="궁금한 내용을 검색해보세요"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSubmittedQuery(e.target.value);
+              }}
             />
             <button className="search-submit" type="submit" aria-label="검색">
               <svg
@@ -182,66 +187,53 @@ export default function Home() {
           ))}
         </div>
 
-        {!hasActiveFilter && tagGroups.length > 0 && (
+        {tagGroups.length > 0 && (
           <div className="related-history-section">
-            <button
-              type="button"
-              className="related-history-toggle"
-              onClick={() => setRelatedOpen((v) => !v)}
-            >
-              <span>관련 히스토리 묶어보기</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  transform: relatedOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.15s ease',
-                }}
+            <div className="related-history-heading">
+              관련 히스토리 묶어보기
+              {activeCategory ? ` · ${activeCategory}` : ''}
+            </div>
+            <div className="related-history-panel">
+              <p className="related-history-sub">
+                같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
+              </p>
+              <select
+                className="element-select"
+                value={elementFilter}
+                onChange={(e) => setElementFilter(e.target.value)}
               >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {relatedOpen && (
-              <div className="related-history-panel">
-                <p className="related-history-sub">
-                  같은 태그로 묶인 항목을 버전 히스토리처럼 한눈에 확인하세요.
-                </p>
-                <select
-                  className="element-select"
-                  value={elementFilter}
-                  onChange={(e) => setElementFilter(e.target.value)}
-                >
-                  <option value="">
-                    전체 보기 ({tagGroups.filter((g) => g.items.length >= 2).length}개 그룹)
+                <option value="">
+                  전체 보기 ({tagGroups.filter((g) => g.items.length >= 2).length}개 그룹)
+                </option>
+                {tagGroups.map((g) => (
+                  <option key={g.tag} value={g.tag}>
+                    {g.tag} ({g.items.length}건)
                   </option>
-                  {tagGroups.map((g) => (
-                    <option key={g.tag} value={g.tag}>
-                      {g.tag} ({g.items.length}건)
-                    </option>
-                  ))}
-                </select>
-                {displayedGroups.map((group) => (
-                  <div className="related-history-card" key={group.tag}>
-                    <div className="related-history-card-head">#{group.tag}</div>
-                    {group.items.map((entry, idx) => (
-                      <div className="related-history-item" key={entry.id}>
-                        <div className="related-history-item-top">
-                          <span className="related-history-item-title">
-                            {entry.title}
-                          </span>
-                          {idx === 0 && (
-                            <span className="latest-badge">최신</span>
-                          )}
-                        </div>
-                        <div className="related-history-item-date">
+                ))}
+              </select>
+              {displayedGroups.map((group) => (
+                <div className="related-history-card" key={group.tag}>
+                  <div className="related-history-card-head">#{group.tag}</div>
+                  {group.items.map((entry, idx) => (
+                    <div className="related-history-item" key={entry.id}>
+                      <div className="related-history-item-top">
+                        <span className="related-history-item-title">
+                          {entry.title}
+                        </span>
+                        {idx === 0 && (
+                          <span className="latest-badge">최신</span>
+                        )}
+                      </div>
+                      <div className="related-history-item-date">
                           {formatDate(entry.entry_date)}
                         </div>
+                        {entry.image_url && (
+                          <ImageCarousel
+                            urls={entry.image_url.split(',')}
+                            alt={entry.title}
+                            className="related-history-item-image"
+                          />
+                        )}
                         <p className="related-history-item-desc">
                           {entry.content}
                         </p>
@@ -259,7 +251,6 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            )}
           </div>
         )}
 
@@ -293,21 +284,21 @@ export default function Home() {
                         href={`/admin?edit=${entry.id}`}
                         className="entry-edit-link"
                       >
-                        ✎ 수정하기
+                        수정
                       </Link>
                       <button
                         type="button"
                         className="entry-delete-link"
                         onClick={() => handleDeleteEntry(entry.id)}
                       >
-                        삭제하기
+                        삭제
                       </button>
                     </div>
                   </div>
                   <h2 className="entry-title">{entry.title}</h2>
                   {entry.image_url && (
-                    <img
-                      src={entry.image_url}
+                    <ImageCarousel
+                      urls={entry.image_url.split(',')}
                       alt={entry.title}
                       className="entry-image"
                     />
@@ -374,4 +365,53 @@ function formatDate(dateStr) {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${yy}.${mm}.${dd}`;
+}
+
+function ImageCarousel({ urls, alt, className }) {
+  const list = (urls || []).map((u) => u.trim()).filter(Boolean);
+  const [idx, setIdx] = useState(0);
+
+  if (list.length === 0) return null;
+
+  if (list.length === 1) {
+    return <img src={list[0]} alt={alt} className={className} />;
+  }
+
+  const go = (delta) => {
+    setIdx((i) => (i + delta + list.length) % list.length);
+  };
+
+  return (
+    <div className="carousel">
+      <img src={list[idx]} alt={alt} className={className} />
+      <button
+        type="button"
+        className="carousel-nav prev"
+        onClick={() => go(-1)}
+        aria-label="이전 이미지"
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        className="carousel-nav next"
+        onClick={() => go(1)}
+        aria-label="다음 이미지"
+      >
+        ›
+      </button>
+      <div className="carousel-dots">
+        {list.map((_, i) => (
+          <span
+            key={i}
+            className={`carousel-dot ${i === idx ? 'active' : ''}`}
+            onClick={() => setIdx(i)}
+          />
+        ))}
+      </div>
+      <span className="carousel-count">
+        {idx + 1} / {list.length}
+      </span>
+    </div>
+  );
 }

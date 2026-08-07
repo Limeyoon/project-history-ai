@@ -54,15 +54,62 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: '유효한 항목이 없습니다.', rejected });
   }
 
-  const { data, error } = await supabaseAdmin
+  // 같은 제목(title)의 기존 기록이 있으면 덮어쓰기(update), 없으면 새로 추가(insert)
+  const titles = rows.map((r) => r.title);
+  const { data: existing, error: fetchError } = await supabaseAdmin
     .from('history_entries')
-    .insert(rows)
-    .select();
+    .select('id, title')
+    .in('title', titles);
 
-  if (error) return res.status(500).json({ error: error.message, rejected });
+  if (fetchError) {
+    return res.status(500).json({ error: fetchError.message, rejected });
+  }
+
+  const existingByTitle = {};
+  (existing || []).forEach((e) => {
+    existingByTitle[e.title] = e.id;
+  });
+
+  const toInsert = [];
+  const toUpdate = [];
+  rows.forEach((r) => {
+    const existingId = existingByTitle[r.title];
+    if (existingId) {
+      toUpdate.push({ id: existingId, ...r });
+    } else {
+      toInsert.push(r);
+    }
+  });
+
+  let insertedCount = 0;
+  let updatedCount = 0;
+  const updateErrors = [];
+
+  if (toInsert.length > 0) {
+    const { data, error } = await supabaseAdmin
+      .from('history_entries')
+      .insert(toInsert)
+      .select();
+    if (error) return res.status(500).json({ error: error.message, rejected });
+    insertedCount = data.length;
+  }
+
+  for (const row of toUpdate) {
+    const { id, ...fields } = row;
+    const { error } = await supabaseAdmin
+      .from('history_entries')
+      .update(fields)
+      .eq('id', id);
+    if (error) {
+      updateErrors.push({ title: row.title, reason: error.message });
+    } else {
+      updatedCount += 1;
+    }
+  }
 
   return res.status(201).json({
-    inserted: data.length,
-    rejected,
+    inserted: insertedCount,
+    updated: updatedCount,
+    rejected: [...rejected, ...updateErrors],
   });
 }

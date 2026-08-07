@@ -474,19 +474,28 @@ export default function Admin() {
       let imageOkCount = 0;
 
       for (const entry of entries) {
-        const fname = entry.image_filename;
-        if (fname && imageMap[fname]) {
-          try {
-            if (!uploadedCache[fname]) {
-              uploadedCache[fname] = await uploadBulkImage(imageMap[fname]);
+        const fnames = (entry.image_filename || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const resolvedUrls = [];
+        for (const fname of fnames) {
+          if (imageMap[fname]) {
+            try {
+              if (!uploadedCache[fname]) {
+                uploadedCache[fname] = await uploadBulkImage(imageMap[fname]);
+              }
+              resolvedUrls.push(uploadedCache[fname]);
+            } catch (err) {
+              warnings.push(`"${entry.title}": 이미지 업로드 실패 (${err.message})`);
             }
-            entry.image_url = uploadedCache[fname];
-            imageOkCount += 1;
-          } catch (err) {
-            warnings.push(`"${entry.title}": 이미지 업로드 실패 (${err.message})`);
+          } else {
+            warnings.push(`"${entry.title}": 이미지 파일 "${fname}"을 찾지 못함`);
           }
-        } else if (fname) {
-          warnings.push(`"${entry.title}": 이미지 파일 "${fname}"을 찾지 못함`);
+        }
+        if (resolvedUrls.length > 0) {
+          entry.image_url = resolvedUrls.join(',');
+          imageOkCount += 1;
         }
         delete entry.image_filename;
       }
@@ -507,7 +516,7 @@ export default function Admin() {
       }
 
       const parts = [
-        `${data.inserted}건 등록 완료`,
+        `신규 ${data.inserted}건 등록, 기존 ${data.updated || 0}건 덮어쓰기 완료`,
         `(이미지 첨부 ${imageOkCount}건)`,
       ];
       if (warnings.length)
@@ -874,7 +883,7 @@ export default function Admin() {
           <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>
             열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자 · 이미지파일명
             <br />
-            이미지파일명 열에 적은 파일명과 정확히 같은 이름의 이미지를 "이미지 선택"에서 함께 골라주세요(장당 5MB 이하, jpg/png).
+            이미지파일명 열에 적은 파일명과 정확히 같은 이름의 이미지를 "이미지 선택"에서 함께 골라주세요(장당 5MB 이하, jpg/png). 한 행에 여러 장을 넣고 싶으면 파일명을 쉼표(,)로 구분하면 캐러셀로 보여줘요.
           </p>
           {bulkStatus && bulkStatus.type === 'error' && (
             <p className="status-msg error">{bulkStatus.msg}</p>
