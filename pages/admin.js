@@ -564,7 +564,7 @@ export default function Admin() {
     return true;
   });
 
-  const PAGE_SIZE = 20;
+  const PAGE_SIZE = 10;
   const pageCount = Math.max(1, Math.ceil(filteredEntries.length / PAGE_SIZE));
   const safePage = Math.min(adminPage, pageCount);
   const pagedEntries = filteredEntries.slice(
@@ -816,7 +816,7 @@ export default function Admin() {
           </p>
 
           <div className="bulk-row">
-            <div className="file-field" style={{ flex: 1, maxWidth: 420 }}>
+            <div className="file-field" style={{ width: 320, flexShrink: 0 }}>
               <span className="file-field-display">
                 {bulkFileName || '엑셀 파일 없음'}
               </span>
@@ -852,7 +852,7 @@ export default function Admin() {
           </div>
 
           <div className="bulk-row" style={{ marginTop: 10 }}>
-            <div className="file-field" style={{ flex: 1, maxWidth: 420 }}>
+            <div className="file-field" style={{ width: 320, flexShrink: 0 }}>
               <span className="file-field-display">
                 {bulkImageFiles.length > 0
                   ? `이미지 ${bulkImageFiles.length}개 선택됨`

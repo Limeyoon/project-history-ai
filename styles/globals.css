@@ -119,10 +119,14 @@ button {
   font-size: 13px;
   font-weight: 700;
   color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  padding: 8px 16px;
 }
 
 .back-link:hover {
-  color: #1d4ed8;
+  color: #fff;
+  background: var(--accent);
 }
 .topbar-link-edit {
   display: inline-flex;
@@ -874,7 +878,7 @@ button {
 
 .btn-full {
   width: 100%;
-  max-width: 420px;
+  max-width: 260px;
   text-align: center;
 }
 
