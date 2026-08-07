@@ -33,6 +33,7 @@ export default function Admin() {
   const [adminTab, setAdminTab] = useState('전체');
   const [adminSearch, setAdminSearch] = useState('');
   const [adminElementFilter, setAdminElementFilter] = useState('');
+  const [adminPage, setAdminPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -563,6 +564,14 @@ export default function Admin() {
     return true;
   });
 
+  const PAGE_SIZE = 20;
+  const pageCount = Math.max(1, Math.ceil(filteredEntries.length / PAGE_SIZE));
+  const safePage = Math.min(adminPage, pageCount);
+  const pagedEntries = filteredEntries.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
   if (!unlocked) {
     return (
       <>
@@ -574,10 +583,10 @@ export default function Admin() {
             <div className="brand">
               <span className="brand-mark">
               <img
-                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
+                src="/icons/logo-white.png"
                 alt=""
-                width="18"
-                height="18"
+                width="19"
+                height="19"
               />
             </span>
               History Archive
@@ -624,10 +633,10 @@ export default function Admin() {
           <div className="brand">
             <span className="brand-mark">
               <img
-                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
+                src="/icons/logo-white.png"
                 alt=""
-                width="18"
-                height="18"
+                width="19"
+                height="19"
               />
             </span>
             History Archive
@@ -770,9 +779,9 @@ export default function Admin() {
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
             <button
-              className="btn btn-black"
+              className="btn btn-black btn-full"
               type="submit"
               disabled={submitting || uploadingImage}
             >
@@ -787,7 +796,7 @@ export default function Admin() {
             {isEditing && (
               <button
                 type="button"
-                className="btn-danger"
+                className="btn-danger btn-full"
                 style={{ borderRadius: 10, padding: '12px 20px' }}
                 onClick={resetForm}
               >
@@ -869,10 +878,16 @@ export default function Admin() {
             </div>
           </div>
 
-          <div className="bulk-row" style={{ marginTop: 14 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>
+            열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자 · 이미지파일명
+            <br />
+            이미지파일명 열에 적은 파일명과 정확히 같은 이름의 이미지를 "이미지 선택"에서 함께 골라주세요(장당 5MB 이하, jpg/png). 한 행에 여러 장을 넣고 싶으면 파일명을 쉼표(,)로 구분하면 캐러셀로 보여줘요.
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
             <button
               type="button"
-              className="btn btn-black"
+              className="btn btn-black btn-full"
               onClick={handleBulkStart}
               disabled={bulkSubmitting || !bulkExcelFile}
             >
@@ -880,11 +895,6 @@ export default function Admin() {
             </button>
           </div>
 
-          <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>
-            열 구성: 날짜(YYYY-MM-DD) · 카테고리 · 제목 · 내용 · 태그(쉼표구분) · 참고URL · 작성자 · 이미지파일명
-            <br />
-            이미지파일명 열에 적은 파일명과 정확히 같은 이름의 이미지를 "이미지 선택"에서 함께 골라주세요(장당 5MB 이하, jpg/png). 한 행에 여러 장을 넣고 싶으면 파일명을 쉼표(,)로 구분하면 캐러셀로 보여줘요.
-          </p>
           {bulkStatus && bulkStatus.type === 'error' && (
             <p className="status-msg error">{bulkStatus.msg}</p>
           )}
@@ -927,7 +937,7 @@ export default function Admin() {
                 key={tab}
                 type="button"
                 className={`admin-tab ${adminTab === tab ? 'active' : ''}`}
-                onClick={() => setAdminTab(tab)}
+                onClick={() => { setAdminTab(tab); setAdminPage(1); }}
               >
                 {tab}
               </button>
@@ -940,12 +950,12 @@ export default function Admin() {
               className="admin-search-input"
               placeholder="제목·내용·태그 검색"
               value={adminSearch}
-              onChange={(e) => setAdminSearch(e.target.value)}
+              onChange={(e) => { setAdminSearch(e.target.value); setAdminPage(1); }}
             />
             <select
               className="admin-element-select"
               value={adminElementFilter}
-              onChange={(e) => setAdminElementFilter(e.target.value)}
+              onChange={(e) => { setAdminElementFilter(e.target.value); setAdminPage(1); }}
             >
               <option value="">엘리먼트 전체 ({elementOptions.length}개)</option>
               {elementOptions.map((el) => (
@@ -993,7 +1003,7 @@ export default function Admin() {
             )}
           </div>
 
-          {filteredEntries.map((e) => (
+          {pagedEntries.map((e) => (
             <div className="admin-list-item" key={e.id}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <input
@@ -1040,6 +1050,35 @@ export default function Admin() {
               </div>
             </div>
           ))}
+
+          {pageCount > 1 && (
+            <div className="admin-pagination">
+              <button
+                type="button"
+                onClick={() => setAdminPage((p) => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+              >
+                이전
+              </button>
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={p === safePage ? 'active' : ''}
+                  onClick={() => setAdminPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setAdminPage((p) => Math.min(pageCount, p + 1))}
+                disabled={safePage === pageCount}
+              >
+                다음
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

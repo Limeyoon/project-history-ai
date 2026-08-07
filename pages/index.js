@@ -115,10 +115,10 @@ export default function Home() {
           <div className="brand">
             <span className="brand-mark">
               <img
-                src="https://img.icons8.com/sf-black-filled/64/folder-invoices.png"
+                src="/icons/logo-white.png"
                 alt=""
-                width="18"
-                height="18"
+                width="19"
+                height="19"
               />
             </span>
             History Archive
@@ -166,27 +166,41 @@ export default function Home() {
           </form>
         </div>
 
-        <div className="category-grid">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              className={`category-card ${activeCategory === c.id ? 'active' : ''}`}
-              onClick={() => toggleCategory(c.id)}
-              type="button"
-            >
-              <span className="category-icon">
-                <img
-                  src={c.icon}
-                  alt={c.label}
-                  width="34"
-                  height="34"
-                  style={c.iconFilter ? { filter: c.iconFilter } : undefined}
-                />
-              </span>
-              <div className="category-title">{c.label}</div>
-            </button>
-          ))}
-        </div>
+        {submittedQuery.trim() ? (
+          <button
+            type="button"
+            className="back-to-browse"
+            onClick={() => {
+              setQuery('');
+              setSubmittedQuery('');
+              setActiveCategory(null);
+            }}
+          >
+            ← 뒤로 (검색 초기화)
+          </button>
+        ) : (
+          <div className="category-grid">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                className={`category-card ${activeCategory === c.id ? 'active' : ''}`}
+                onClick={() => toggleCategory(c.id)}
+                type="button"
+              >
+                <span className="category-icon">
+                  <img
+                    src={c.icon}
+                    alt={c.label}
+                    width="34"
+                    height="34"
+                    style={c.iconFilter ? { filter: c.iconFilter } : undefined}
+                  />
+                </span>
+                <div className="category-title">{c.label}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {loadError && <div className="notice">{loadError}</div>}
 
